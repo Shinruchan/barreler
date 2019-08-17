@@ -1,0 +1,42 @@
+{
+  "name": "barreler",
+  "version": "0.0.1",
+  "description": "Generator for barrel files (export from index files) for JavaScript and TypeScript.",
+  "bin": {
+    "barreler": "./lib/cli/index.js"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/cli/index.ts",
+    "cli": "ts-node src/cli/index.ts",
+    "build": "tsc -p .",
+    "prepublish": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shinruchan/barreler.git"
+  },
+  "keywords": [
+    "barrel",
+    "node.js",
+    "index.js",
+    "index.ts",
+    "typescript"
+  ],
+  "author": "Shinru",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Shinruchan/barreler/issues"
+  },
+  "homepage": "https://github.com/Shinruchan/barreler#readme",
+  "devDependencies": {
+    "@types/node": "^12.7.2",
+    "nodemon": "^1.19.1",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
+  },
+  "dependencies": {
+    "@danielberndt/match-all": "^1.0.0"
+  }
+}
