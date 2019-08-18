@@ -12,7 +12,8 @@
     "cli": "ts-node src/cli/index.ts",
     "build": "tsc -p .",
     "prepublish": "npm run build",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",
@@ -45,6 +46,7 @@
   },
   "jest": {
     "preset": "ts-jest",
+    "resetMocks": true,
     "globals": {
       "ts-jest": {
         "tsConfig": "tsconfig.spec.json"
