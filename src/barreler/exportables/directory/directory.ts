@@ -1,12 +1,12 @@
 import { promisify } from "util";
 import { readdir } from "fs";
 
-import { appendFile, removeExportLinesBeforeUpdating } from "../util/utils";
-import { FileType } from "../model";
-import { exportExportables } from "../exporter/exporter";
-import { parseFiles } from "../parser/parser";
+import { appendFile, removeExportLinesBeforeUpdating } from "../../util/utils";
+import { FileType } from "../../model";
+import { exportExportables } from "../../exporter/exporter";
+import { parseFiles } from "../../parser/parser";
 
-import { Exportable } from "./model";
+import { Exportable } from "../model";
 
 export class Directory implements Exportable {
   private directory: string = "";
@@ -31,8 +31,6 @@ export class Directory implements Exportable {
     // TODO check if has index file...
 
     const exportedData = `export * from '.${this.exportFromPath}';\n`;
-
-    console.log(exportedData);
 
     await removeExportLinesBeforeUpdating(
       this.indexFilePath,
