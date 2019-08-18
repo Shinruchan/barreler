@@ -1,6 +1,6 @@
-import { Exportable, File, Directory } from "./exportables";
-import { getFileType } from "./utils";
-import { FileType } from "./model";
+import { Exportable, File, Directory } from "../exportables";
+import { getFileType } from "../util/utils";
+import { FileType } from "../model";
 
 export const parseFiles = async (files: string[]): Promise<Exportable[]> => {
   const exportables: Exportable[] = [];

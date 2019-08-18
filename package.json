@@ -11,7 +11,8 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/cli/index.ts",
     "cli": "ts-node src/cli/index.ts",
     "build": "tsc -p .",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -31,12 +32,23 @@
   },
   "homepage": "https://github.com/Shinruchan/barreler#readme",
   "devDependencies": {
+    "@types/jest": "^24.0.17",
     "@types/node": "^12.7.2",
+    "jest": "^24.9.0",
     "nodemon": "^1.19.1",
+    "ts-jest": "^24.0.2",
     "ts-node": "^8.3.0",
     "typescript": "^3.5.3"
   },
   "dependencies": {
     "@danielberndt/match-all": "^1.0.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.spec.json"
+      }
+    }
   }
 }

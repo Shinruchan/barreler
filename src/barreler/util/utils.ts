@@ -1,4 +1,4 @@
-import { FileType } from "./model";
+import { FileType } from "../model";
 import * as fs from "fs";
 import { promisify } from "util";
 
