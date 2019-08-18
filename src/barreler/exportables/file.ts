@@ -4,7 +4,7 @@ import {
   loadFileToString,
   appendFile,
   removeExportLinesBeforeUpdating
-} from "../utils";
+} from "../util/utils";
 import { FileType, fileExtensions } from "../model";
 
 const reservedWordsRegex = /export|class|abstract|var|let|const|interface|type|enum|function|default/g;

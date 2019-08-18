@@ -1,5 +1,5 @@
-import { Exportable } from "./exportables";
-import { FileType } from "./model";
+import { Exportable } from "../exportables";
+import { FileType } from "../model";
 
 export const exportExportables = async (
   exportables: Exportable[]

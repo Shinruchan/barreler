@@ -1,10 +1,10 @@
 import { promisify } from "util";
 import { readdir } from "fs";
 
-import { appendFile, removeExportLinesBeforeUpdating } from "../utils";
+import { appendFile, removeExportLinesBeforeUpdating } from "../util/utils";
 import { FileType } from "../model";
-import { exportExportables } from "../exporter";
-import { parseFiles } from "../parser";
+import { exportExportables } from "../exporter/exporter";
+import { parseFiles } from "../parser/parser";
 
 import { Exportable } from "./model";
 
