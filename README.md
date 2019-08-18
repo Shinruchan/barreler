@@ -21,11 +21,7 @@ npm install barreler
 ```
 
 ```ts
-import { parseFiles, exportExportables } from "barreler";
+import { barrel } from "barreler";
 
-// Generate exportables
-const exportables = await parseFiles(files);
-
-// Export them to index files
-await exportExportables(exportables);
+await barrel(files);
 ```

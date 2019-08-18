@@ -12,4 +12,5 @@ export {
   loadFileToString,
   removeExportLinesBeforeUpdating
 } from "./utils";
+export { barrel } from "./barrel";
 export * from "./exportables";
