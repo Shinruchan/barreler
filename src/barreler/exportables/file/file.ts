@@ -76,7 +76,7 @@ export class File implements Exportable {
       const exportFromLine = this.findExportableNameFromLine(line);
 
       if (exportFromLine) {
-        this.exports.push(exportFromLine);
+        exports.push(exportFromLine);
       }
 
       return exports;
@@ -90,7 +90,7 @@ export class File implements Exportable {
     const withoutBeginningSpaces = withoutReservedWords.replace(/^\s*/, "");
 
     // TODO: Check for possible multiple exports, multiline exports, etc.
-    if (withoutBeginningSpaces.indexOf("{") === 0) return exports;
+    if (withoutBeginningSpaces.indexOf("{") === 0) return null;
 
     const exportName = withoutBeginningSpaces.match(/^\w*/);
 

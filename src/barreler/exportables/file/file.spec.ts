@@ -140,6 +140,19 @@ describe("File", () => {
       );
       expect(file["findExportableNameFromLine"]).toHaveBeenCalledTimes(2);
     });
+
+    it("should add exports to exports list", async () => {
+      jest
+        .spyOn(utils, "loadFileToString")
+        .mockResolvedValue("export class Test {}");
+      file["findExportableNameFromLine"] = jest.fn().mockReturnValue({
+        name: "Test"
+      });
+
+      await file["findExportsInFile"]();
+
+      expect(file["exports"]).toEqual([{ name: "Test" }]);
+    });
   });
 
   describe("findExportableNameFromLine", () => {
