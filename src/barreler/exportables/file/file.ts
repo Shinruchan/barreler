@@ -1,13 +1,13 @@
-import { Exportable, Export } from "./model";
+import { Exportable, Export } from "../model";
 import matchAll from "@danielberndt/match-all";
 import {
   loadFileToString,
   appendFile,
   removeExportLinesBeforeUpdating
-} from "../util/utils";
-import { FileType, fileExtensions } from "../model";
+} from "../../util/utils";
+import { FileType, fileExtensions } from "../../model";
 
-const reservedWordsRegex = /export|class|abstract|var|let|const|interface|type|enum|function|default/g;
+const reservedWordsRegex = /\b(export|class|abstract|var|let|const|interface|type|enum|function|default)\b/g;
 
 export class File implements Exportable {
   private file: string = "";
@@ -73,25 +73,35 @@ export class File implements Exportable {
     const exportLines = matchAll(fileContent, /.*export .*/);
 
     this.exports = exportLines.reduce((exports: Export[], [line]) => {
-      const isDefault = !!line.match(/\bdefault/g);
+      const exportFromLine = this.findExportableNameFromLine(line);
 
-      const withoutReservedWords = line.replace(reservedWordsRegex, "");
-      const withoutBeginningSpaces = withoutReservedWords.replace(/^\s*/, "");
-
-      // TODO: Check for possible multiple exports, multiline exports, etc.
-      if (withoutBeginningSpaces.indexOf("{") === 0) return exports;
-
-      const exportName = withoutBeginningSpaces.match(/^\w*/);
-
-      if (exportName) {
-        exports.push({
-          name: exportName[0],
-          isDefault
-        });
+      if (exportFromLine) {
+        this.exports.push(exportFromLine);
       }
 
       return exports;
     }, []);
+  }
+
+  private findExportableNameFromLine(line: string): Export | null {
+    const isDefault = !!line.match(/\bdefault/g);
+
+    const withoutReservedWords = line.replace(reservedWordsRegex, "");
+    const withoutBeginningSpaces = withoutReservedWords.replace(/^\s*/, "");
+
+    // TODO: Check for possible multiple exports, multiline exports, etc.
+    if (withoutBeginningSpaces.indexOf("{") === 0) return exports;
+
+    const exportName = withoutBeginningSpaces.match(/^\w*/);
+
+    if (exportName) {
+      return {
+        name: exportName[0],
+        isDefault
+      };
+    }
+
+    return null;
   }
 
   private preparePaths(): void {
