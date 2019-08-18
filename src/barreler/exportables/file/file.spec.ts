@@ -2,6 +2,8 @@ import { File } from "./file";
 import * as utils from "../../util/utils";
 import { FileType } from "../../model";
 
+jest.mock("../../util/utils");
+
 describe("File", () => {
   let file: File;
 
