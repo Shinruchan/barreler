@@ -18,8 +18,6 @@ export class Directory implements Exportable {
   async init(directory: string): Promise<boolean> {
     this.directory = directory;
 
-    await this.preparePaths();
-
     await this.findExportsInDir();
 
     return true;
@@ -28,7 +26,9 @@ export class Directory implements Exportable {
   async writeToFile(): Promise<void> {
     await exportExportables(this.exportables);
 
-    // TODO check if has index file...
+    if (!(await this.hasIndex())) return;
+
+    await this.preparePaths();
 
     const exportedData = `export * from '.${this.exportFromPath}';\n`;
 
@@ -82,5 +82,12 @@ export class Directory implements Exportable {
     if (!file) return "js";
 
     return file.substring(file.lastIndexOf(".") + 1);
+  }
+
+  private async hasIndex(): Promise<boolean> {
+    const files = await this.getFilesInDir();
+    const index = files.find(file => file.includes("/index."));
+
+    return !!index;
   }
 }

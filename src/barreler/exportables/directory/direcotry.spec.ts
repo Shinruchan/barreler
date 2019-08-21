@@ -41,19 +41,9 @@ describe("Directory", () => {
   });
 
   describe("init", () => {
-    beforeEach(() => {
-      directory["preparePaths"] = jest.fn();
-      directory["findExportsInDir"] = jest.fn();
-    });
-
-    it("should prepare paths", async () => {
-      const res = await directory.init("");
-
-      expect(directory["preparePaths"]).toHaveBeenCalled();
-      expect(res).toBe(true);
-    });
-
     it("should find exportables", async () => {
+      directory["findExportsInDir"] = jest.fn();
+
       const res = await directory.init("");
 
       expect(directory["findExportsInDir"]).toHaveBeenCalled();
@@ -129,8 +119,23 @@ describe("Directory", () => {
         .mockImplementation();
       appendSpy = jest.spyOn(utils, "appendFile").mockImplementation();
 
+      directory["preparePaths"] = jest.fn().mockResolvedValue(null);
+      directory["hasIndex"] = jest.fn().mockResolvedValue(true);
+
       directory["indexFilePath"] = "index.ts";
       directory["exportFromPath"] = "/my-dir";
+    });
+
+    it("should prepare paths", async () => {
+      await directory.writeToFile();
+
+      expect(directory["hasIndex"]).toHaveBeenCalled();
+    });
+
+    it("should prepare paths", async () => {
+      await directory.writeToFile();
+
+      expect(directory["preparePaths"]).toHaveBeenCalled();
     });
 
     it("should export all underlaying exportables", async () => {
@@ -152,6 +157,22 @@ describe("Directory", () => {
         "index.ts",
         "export * from './my-dir';\n"
       );
+    });
+  });
+
+  describe("hasIndex", () => {
+    it("should return true if has index", async () => {
+      directory["getFilesInDir"] = jest.fn().mockResolvedValue(["/index.ts"]);
+
+      expect(await directory["hasIndex"]()).toBe(true);
+    });
+
+    it("should return false if does not have index", async () => {
+      directory["getFilesInDir"] = jest
+        .fn()
+        .mockResolvedValue(["/random-file.ts"]);
+
+      expect(await directory["hasIndex"]()).toBe(false);
     });
   });
 });
