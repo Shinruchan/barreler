@@ -1,17 +1,14 @@
-export {
-  exportExportables,
-  compareFileExportsFirst,
-  compareAlphabetically
-} from "./exporter/exporter";
-export { FileType, fileExtensions } from "./model";
 export { parseFiles } from "./parser/parser";
 export {
   appendFile,
   writeFile,
-  getFileType,
   loadFileToString,
-  removeExportLinesBeforeUpdating
-} from "./util/utils";
+  removeExportLinesBeforeUpdating,
+  compareAlphabetically,
+  compareDefaultFirst,
+  compareFileExportsFirst,
+  isDirectory
+} from "./util";
 export { barrel } from "./barrel";
 
 export * from "./exportables";

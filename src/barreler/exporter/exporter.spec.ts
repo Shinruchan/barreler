@@ -1,67 +1,251 @@
-import { FileType } from "../model";
-import { compareFileExportsFirst, exportExportables } from "./exporter";
-import { Exportable, File } from "../exportables";
+import { Exporter } from "./exporter";
+import * as util from "../util";
+
+jest.mock("../util");
 
 describe("exporter", () => {
-  describe("exportExportables", () => {
-    it("should sort exportables", async () => {
-      const exportables: Exportable[] = [];
-      const sortSpy = jest.spyOn(exportables as any, "sort");
+  let exporter: Exporter;
 
-      await exportExportables(exportables);
+  beforeEach(() => {
+    exporter = new Exporter();
+  });
 
-      expect(sortSpy).toHaveBeenCalledWith(compareFileExportsFirst);
+  describe("addExportsToIndex", () => {
+    it("should add exports to new index file", () => {
+      const exportLine = {
+        whatToExport: "*",
+        fromFile: "file.ts"
+      };
+
+      exporter.addExportsToIndex(exportLine, "/test/index.ts");
+
+      const map = new Map();
+      map.set("/test/index.ts", [exportLine]);
+
+      expect(exporter["indexFiles"]).toEqual(map);
     });
 
-    it("should write exportables to file", async () => {
-      const exportable = new File();
-      const writeSpy = jest
-        .spyOn(exportable, "writeToFile")
-        .mockResolvedValue();
-      const exportables: Exportable[] = [exportable];
+    it("should add exports to existing index file", () => {
+      exporter["indexFiles"] = new Map([
+        [
+          "/test/index.ts",
+          [
+            {
+              whatToExport: "*",
+              fromFile: "existing-file.ts"
+            }
+          ]
+        ]
+      ]);
 
-      await exportExportables(exportables);
+      const exportLine = {
+        whatToExport: "*",
+        fromFile: "file.ts"
+      };
 
-      expect(writeSpy).toHaveBeenCalled();
+      exporter.addExportsToIndex(exportLine, "/test/index.ts");
+
+      const map = new Map();
+      map.set("/test/index.ts", [
+        {
+          whatToExport: "*",
+          fromFile: "existing-file.ts"
+        },
+        exportLine
+      ]);
+
+      expect(exporter["indexFiles"]).toEqual(map);
     });
   });
 
-  describe("compareFileExportsFirst", () => {
-    const genExportable = (file: string, type: FileType) =>
-      (({
-        file,
-        getType: () => type,
-        getFile: () => file
-      } as any) as Exportable);
-
-    it("should put file exports first", () => {
-      const file1 = genExportable("file 1", FileType.File);
-      const file2 = genExportable("file 2", FileType.File);
-      const dir1 = genExportable("dir 1", FileType.Directory);
-
-      const exports = [file1, dir1, file2];
-
-      expect(exports.sort(compareFileExportsFirst)).toEqual([
-        file1,
-        file2,
-        dir1
+  describe("getIndexFiles", () => {
+    it("should return index files", () => {
+      exporter["indexFiles"] = new Map([
+        [
+          "/test/index.ts",
+          [
+            {
+              whatToExport: "*",
+              fromFile: "existing-file.ts"
+            }
+          ]
+        ]
       ]);
+
+      expect(exporter.getIndexFiles()).toEqual(["/test/index.ts"]);
+    });
+  });
+
+  describe("exportToFiles", () => {
+    beforeEach(() => {
+      jest.spyOn(util, "compareFileExportsFirst").mockReturnValue(0);
     });
 
-    it("should sort by alphabet if same type", () => {
-      const file1 = genExportable("b file 1", FileType.File);
-      const file2 = genExportable("a file 2", FileType.File);
-      const dir1 = genExportable("a dir 1", FileType.Directory);
-      const dir2 = genExportable("b dir 1", FileType.Directory);
+    it("should export string exports", async () => {
+      exporter["exportStringLineToFile"] = jest.fn();
 
-      const exports = [dir2, file1, dir1, file2];
-
-      expect(exports.sort(compareFileExportsFirst)).toEqual([
-        file2,
-        file1,
-        dir1,
-        dir2
+      exporter["indexFiles"] = new Map([
+        ["index.ts", [{ whatToExport: "*", fromFile: "/test.ts" }]]
       ]);
+
+      await exporter.exportToFiles();
+
+      expect(exporter["exportStringLineToFile"]).toHaveBeenCalledWith(
+        { fromFile: "/test.ts", whatToExport: "*" },
+        "index.ts"
+      );
+    });
+
+    it("should export named exports", async () => {
+      exporter["exportExportsLineToFile"] = jest.fn();
+
+      exporter["indexFiles"] = new Map([
+        [
+          "index.ts",
+          [{ whatToExport: [{ name: "SomeEntity" }], fromFile: "/file.ts" }]
+        ]
+      ]);
+
+      await exporter.exportToFiles();
+
+      expect(exporter["exportExportsLineToFile"]).toHaveBeenCalledWith(
+        { fromFile: "/file.ts", whatToExport: [{ name: "SomeEntity" }] },
+        "index.ts"
+      );
+    });
+
+    it("should sort export lines", async () => {
+      exporter["indexFiles"] = new Map([
+        [
+          "index.ts",
+          [
+            { whatToExport: "*", fromFile: "/test.ts" },
+            { whatToExport: "*", fromFile: "/test2.ts" }
+          ]
+        ]
+      ]);
+
+      await exporter.exportToFiles();
+
+      expect(util.compareFileExportsFirst).toHaveBeenCalled();
+    });
+  });
+
+  describe("exportStringLineToFile", () => {
+    beforeEach(() => {
+      jest.spyOn(util, "removeExportLinesBeforeUpdating").mockImplementation();
+      jest.spyOn(util, "appendFile").mockImplementation();
+    });
+
+    it("should remove existing line", async () => {
+      await exporter["exportStringLineToFile"](
+        {
+          whatToExport: "*",
+          fromFile: "/folder/file.ts"
+        },
+        "some/index.ts"
+      );
+
+      expect(util.removeExportLinesBeforeUpdating).toHaveBeenCalledWith(
+        "some/index.ts",
+        "/folder/file.ts"
+      );
+    });
+
+    it("should write * export to file", async () => {
+      await exporter["exportStringLineToFile"](
+        {
+          whatToExport: "*",
+          fromFile: "/folder/file.ts"
+        },
+        "some/index.ts"
+      );
+
+      expect(util.appendFile).toHaveBeenCalledWith(
+        "some/index.ts",
+        "export * from './folder/file.ts';\n"
+      );
+    });
+  });
+
+  describe("exportExportsLineToFile", () => {
+    beforeEach(() => {
+      jest.spyOn(util, "removeExportLinesBeforeUpdating").mockImplementation();
+      jest.spyOn(util, "appendFile").mockImplementation();
+      jest.spyOn(util, "compareAlphabetically").mockReturnValue(0);
+      jest.spyOn(util, "compareDefaultFirst").mockReturnValue(0);
+    });
+
+    it("should remove existing line", async () => {
+      await exporter["exportExportsLineToFile"](
+        {
+          whatToExport: [{ name: "SomeEntity" }],
+          fromFile: "/folder/file.ts"
+        },
+        "some/index.ts"
+      );
+
+      expect(util.removeExportLinesBeforeUpdating).toHaveBeenCalledWith(
+        "some/index.ts",
+        "/folder/file.ts"
+      );
+    });
+
+    it("should write exports to file", async () => {
+      await exporter["exportExportsLineToFile"](
+        {
+          whatToExport: [{ name: "SomeEntity" }],
+          fromFile: "/folder/file.ts"
+        },
+        "some/index.ts"
+      );
+
+      expect(util.appendFile).toHaveBeenCalledWith(
+        "some/index.ts",
+        "export { SomeEntity } from './folder/file.ts';\n"
+      );
+    });
+
+    it("should write default exports to file", async () => {
+      await exporter["exportExportsLineToFile"](
+        {
+          whatToExport: [
+            { name: "SomeEntity" },
+            { name: "SomeDefEntity", isDefault: true }
+          ],
+          fromFile: "/folder/file.ts"
+        },
+        "some/index.ts"
+      );
+
+      expect(util.appendFile).toHaveBeenCalledWith(
+        "some/index.ts",
+        "export { SomeEntity, default as SomeDefEntity } from './folder/file.ts';\n"
+      );
+    });
+
+    it("should sort alphabetically", async () => {
+      await exporter["exportExportsLineToFile"](
+        {
+          whatToExport: [{ name: "SomeEntity1" }, { name: "SomeEntity2" }],
+          fromFile: "/folder/file.ts"
+        },
+        "some/index.ts"
+      );
+
+      expect(util.compareAlphabetically).toHaveBeenCalled();
+    });
+
+    it("should sort defaults first", async () => {
+      await exporter["exportExportsLineToFile"](
+        {
+          whatToExport: [{ name: "SomeEntity1" }, { name: "SomeEntity2" }],
+          fromFile: "/folder/file.ts"
+        },
+        "some/index.ts"
+      );
+
+      expect(util.compareDefaultFirst).toHaveBeenCalled();
     });
   });
 });

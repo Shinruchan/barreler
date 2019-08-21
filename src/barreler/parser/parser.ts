@@ -1,21 +1,18 @@
 import { Exportable, File, Directory } from "../exportables";
-import { getFileType } from "../util/utils";
-import { FileType } from "../model";
+import { isDirectory } from "../util";
+import { Exporter } from "../exporter/exporter";
 
-export const parseFiles = async (files: string[]): Promise<Exportable[]> => {
-  const exportables: Exportable[] = [];
+export const parseFiles = async (
+  paths: string[],
+  exporter: Exporter
+): Promise<void> => {
+  for (const path of paths) {
+    const isDir = await isDirectory(path);
 
-  for (const file of files) {
-    if (file.substring(0, file.lastIndexOf(".")).endsWith("/index")) continue;
+    const exportable: Exportable = isDir
+      ? new Directory(path, exporter)
+      : new File(path, exporter);
 
-    const fileType: FileType = await getFileType(file);
-    const isDir = fileType === FileType.Directory;
-    const exportable: Exportable = isDir ? new Directory() : new File();
-
-    if (await exportable.init(file)) {
-      exportables.push(exportable);
-    }
+    await exportable.init();
   }
-
-  return exportables;
 };

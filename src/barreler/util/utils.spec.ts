@@ -1,12 +1,10 @@
 import * as utils from "./utils";
-
 import * as fs from "fs";
-import { FileType } from "../model";
 
 jest.mock("fs");
 
 describe("utils", () => {
-  describe("getFileType", () => {
+  describe("isDirectory", () => {
     it("should get directory", async () => {
       jest.spyOn(fs, "stat").mockImplementation((path, callback) =>
         callback(null, {
@@ -14,9 +12,9 @@ describe("utils", () => {
         } as any)
       );
 
-      const type = await utils.getFileType("/dir");
+      const type = await utils.isDirectory("/dir");
 
-      expect(type).toBe(FileType.Directory);
+      expect(type).toBe(true);
     });
 
     it("should get file", async () => {
@@ -26,9 +24,9 @@ describe("utils", () => {
         } as any)
       );
 
-      const type = await utils.getFileType("/dir/file.ts");
+      const type = await utils.isDirectory("/dir/file.ts");
 
-      expect(type).toBe(FileType.File);
+      expect(type).toBe(false);
     });
   });
 

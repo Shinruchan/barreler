@@ -1,86 +1,133 @@
+import * as fs from "fs";
 import { File } from "./file";
 import * as utils from "../../util/utils";
-import { FileType } from "../../model";
+import { Exporter } from "../../exporter/exporter";
 
 jest.mock("../../util/utils");
+jest.mock("fs");
 
 describe("File", () => {
   let file: File;
+  let exporter: Exporter;
 
   beforeEach(() => {
-    file = new File();
-  });
+    exporter = {
+      addExportsToIndex: jest.fn(),
+      exportToFiles: jest.fn().mockResolvedValue(null)
+    } as any;
 
-  it("should be File type", () => {
-    expect(file.getType()).toBe(FileType.File);
-  });
-
-  it("should return file path", () => {
-    file["file"] = "file/path";
-
-    expect(file.getFile()).toBe("file/path");
+    file = new File("my-file.js", exporter);
   });
 
   describe("init", () => {
     beforeEach(() => {
       file["hasValidExtension"] = jest.fn().mockReturnValue(true);
-      file["preparePaths"] = jest.fn();
-      file["findExportsInFile"] = jest.fn();
+      file["isIndex"] = jest.fn();
+      file["preparePaths"] = jest.fn().mockResolvedValue(null);
+      file["findExportsInFile"] = jest.fn().mockResolvedValue(null);
+      file["exportExports"] = jest.fn().mockResolvedValue(null);
     });
 
     it("should validate file extension", async () => {
       file["hasValidExtension"] = jest.fn().mockReturnValue(false);
 
-      const res = await file.init("");
+      await file.init();
 
       expect(file["hasValidExtension"]).toHaveBeenCalled();
-      expect(res).toBe(false);
+    });
+
+    it("should validate index file", async () => {
+      await file.init();
+
+      expect(file["isIndex"]).toHaveBeenCalled();
     });
 
     it("should prepare paths", async () => {
-      const res = await file.init("");
+      await file.init();
 
       expect(file["preparePaths"]).toHaveBeenCalled();
-      expect(res).toBe(true);
     });
 
     it("should find exports", async () => {
-      const res = await file.init("");
+      await file.init();
 
       expect(file["findExportsInFile"]).toHaveBeenCalled();
-      expect(res).toBe(true);
+    });
+
+    it("should export exports", async () => {
+      await file.init();
+
+      expect(file["exportExports"]).toHaveBeenCalled();
+    });
+  });
+
+  describe("export exports", () => {
+    it("should export exports via exporter", () => {
+      file["exports"] = ["a"] as any;
+      file["exportFromPath"] = "fromPath";
+      file["indexFilePath"] = "indexPath";
+
+      file["exportExports"]();
+
+      expect(exporter.addExportsToIndex).toHaveBeenCalledWith(
+        {
+          whatToExport: ["a"],
+          fromFile: "fromPath"
+        },
+        "indexPath"
+      );
     });
   });
 
   describe("extension validator", () => {
     it("should allow .js", () => {
-      file["file"] = "file.js";
+      file["path"] = "file.js";
 
       expect(file["hasValidExtension"]()).toBe(true);
     });
 
     it("should allow .jsx", () => {
-      file["file"] = "file.jsx";
+      file["path"] = "file.jsx";
 
       expect(file["hasValidExtension"]()).toBe(true);
     });
 
     it("should allow .ts", () => {
-      file["file"] = "file.ts";
+      file["path"] = "file.ts";
 
       expect(file["hasValidExtension"]()).toBe(true);
     });
 
     it("should allow .tsx", () => {
-      file["file"] = "file.tsx";
+      file["path"] = "file.tsx";
 
       expect(file["hasValidExtension"]()).toBe(true);
     });
 
     it("should not allow other", () => {
-      file["file"] = "file.css";
+      file["path"] = "file.css";
 
       expect(file["hasValidExtension"]()).toBe(false);
+    });
+  });
+
+  describe("is index", () => {
+    it("should return true if index.ts", () => {
+      file["path"] = "some/path/to/index.ts";
+
+      expect(file["isIndex"]()).toBe(true);
+    });
+
+    it("should return true if index.js", () => {
+      file["path"] = "path/index.js";
+
+      expect(file["isIndex"]()).toBe(true);
+    });
+
+    it("should return false if normal file", () => {
+      file["path"] = "/some/normal/file.ts";
+
+      expect(file["isIndex"]()).toBe(false);
     });
   });
 
@@ -90,7 +137,7 @@ describe("File", () => {
     });
 
     it("should load file to string", async () => {
-      file["file"] = "my-file.js";
+      file["path"] = "my-file.js";
       const loadSpy = jest
         .spyOn(utils, "loadFileToString")
         .mockResolvedValue("");
@@ -292,14 +339,15 @@ describe("File", () => {
   });
 
   describe("prepare paths", () => {
-    beforeEach(() => {
-      file["file"] = "/project/folder/file.ts";
+    beforeEach(async () => {
+      file["path"] = "/project/folder/file.ts";
+      file["getRootPath"] = jest.fn(() => Promise.resolve("/project/folder"));
 
-      file["preparePaths"]();
+      await file["preparePaths"]();
     });
 
     it("should set rootPath", () => {
-      expect(file["rootPath"]).toEqual("/project/folder");
+      expect(file["getRootPath"]).toHaveBeenCalledWith(file["path"]);
     });
 
     it("should set exportFromPath", () => {
@@ -310,66 +358,85 @@ describe("File", () => {
       expect(file["indexFilePath"]).toEqual("/project/folder/index.ts");
     });
 
-    it("should set indexFilePath for js file", () => {
-      file["file"] = "/project/folder/file.js";
+    it("should set indexFilePath for js file", async () => {
+      file["path"] = "/project/folder/file.js";
 
-      file["preparePaths"]();
+      await file["preparePaths"]();
 
       expect(file["indexFilePath"]).toEqual("/project/folder/index.js");
     });
   });
 
-  describe("writeToFile", () => {
-    let removeSpy: jest.SpyInstance;
-    let appendSpy: jest.SpyInstance;
+  describe("get root path", () => {
+    it("should be same folder if file has sibilings", async () => {
+      file["hasSibilings"] = jest.fn().mockResolvedValue(true);
 
-    beforeEach(() => {
-      removeSpy = jest
-        .spyOn(utils, "removeExportLinesBeforeUpdating")
-        .mockImplementation();
-      appendSpy = jest.spyOn(utils, "appendFile").mockImplementation();
+      const path = await file["getRootPath"]("/some/path/file.ts");
 
-      file["indexFilePath"] = "index.ts";
-      file["exportFromPath"] = "/my-file";
+      expect(path).toBe("/some/path");
     });
 
-    it("should remove matching lines", async () => {
-      await file.writeToFile();
+    it("should be parent folder if file has no direct sibilings", async () => {
+      file["hasSibilings"] = jest
+        .fn()
+        .mockResolvedValueOnce(false)
+        .mockResolvedValue(true);
 
-      expect(removeSpy).toHaveBeenCalledWith("index.ts", "/my-file");
+      const path = await file["getRootPath"]("/some/path/file.ts");
+
+      expect(path).toBe("/some");
+    });
+  });
+
+  describe("hasSibilings", () => {
+    const setFiles = (files: string[]) => {
+      jest
+        .spyOn(fs, "readdir")
+        .mockImplementation((path, opts, callback) =>
+          callback(null, files as any)
+        );
+    };
+
+    it("should be true if include .ts sibiling", async () => {
+      setFiles(["my-file.ts", "file.ts"]);
+
+      expect(await file["hasSibilings"]("dir")).toBe(true);
     });
 
-    it("should append an export", async () => {
-      file["exports"] = [{ name: "MyClass" }];
+    it("should be true if include .js sibiling", async () => {
+      setFiles(["my-file.ts", "file.js"]);
 
-      await file.writeToFile();
-
-      expect(appendSpy).toHaveBeenCalledWith(
-        "index.ts",
-        "export { MyClass } from './my-file';\n"
-      );
+      expect(await file["hasSibilings"]("dir")).toBe(true);
     });
 
-    it("should append multiple exports", async () => {
-      file["exports"] = [{ name: "MyClass" }, { name: "myConst" }];
+    it("should be true if include .jsx sibiling", async () => {
+      setFiles(["my-file.ts", "file.jsx"]);
 
-      await file.writeToFile();
-
-      expect(appendSpy).toHaveBeenCalledWith(
-        "index.ts",
-        "export { MyClass, myConst } from './my-file';\n"
-      );
+      expect(await file["hasSibilings"]("dir")).toBe(true);
     });
 
-    it("should append default export", async () => {
-      file["exports"] = [{ name: "MyClass", isDefault: true }];
+    it("should be true if include .tsx sibiling", async () => {
+      setFiles(["my-file.ts", "file.tsx"]);
 
-      await file.writeToFile();
+      expect(await file["hasSibilings"]("dir")).toBe(true);
+    });
 
-      expect(appendSpy).toHaveBeenCalledWith(
-        "index.ts",
-        "export { default as MyClass } from './my-file';\n"
-      );
+    it("should be false if include only non-exportable sibiling", async () => {
+      setFiles(["my-file.ts", "file.css"]);
+
+      expect(await file["hasSibilings"]("dir")).toBe(false);
+    });
+
+    it("should be true if include folder sibiling", async () => {
+      setFiles(["my-file.ts", "folder"]);
+
+      expect(await file["hasSibilings"]("dir")).toBe(true);
+    });
+
+    it("should be true if include folder-with-dash sibiling", async () => {
+      setFiles(["my-file.ts", "folder-with-dash"]);
+
+      expect(await file["hasSibilings"]("dir")).toBe(true);
     });
   });
 });

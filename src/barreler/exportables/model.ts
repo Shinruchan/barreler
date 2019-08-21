@@ -1,13 +1,17 @@
-import { FileType } from "../model";
+import { Exporter } from "../exporter/exporter";
 
-export interface Exportable {
-  init(file: string): Promise<boolean>;
-  writeToFile(): Promise<void>;
-  getType(): FileType;
-  getFile(): string;
+export abstract class Exportable {
+  constructor(protected path: string, protected exporter: Exporter) {}
+
+  abstract init(): Promise<void>;
 }
 
 export interface Export {
   name: string;
   isDefault?: boolean;
+}
+
+export interface ExportLine {
+  whatToExport: string | Export[];
+  fromFile: string;
 }

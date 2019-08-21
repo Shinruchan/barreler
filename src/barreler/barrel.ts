@@ -1,7 +1,8 @@
 import { parseFiles } from "./parser/parser";
-import { exportExportables } from "./exporter/exporter";
+import { Exporter } from "./exporter/exporter";
 
 export const barrel = async (files: string[]): Promise<void> => {
-  const exportables = await parseFiles(files);
-  await exportExportables(exportables);
+  const exporter = new Exporter();
+  await parseFiles(files, exporter);
+  await exporter.exportToFiles();
 };
