@@ -1,64 +1,40 @@
 import { Exportable, Export } from "../model";
 import matchAll from "@danielberndt/match-all";
-import {
-  loadFileToString,
-  appendFile,
-  removeExportLinesBeforeUpdating
-} from "../../util/utils";
-import { FileType, fileExtensions } from "../../model";
+import { loadFileToString } from "../../util";
+import { promisify } from "util";
+import { readdir } from "fs";
 
 const reservedWordsRegex = /\b(export|class|abstract|var|let|const|interface|type|enum|function|default)\b/g;
+const fileExtensions = ["js", "jsx", "ts", "tsx"];
 
-export class File implements Exportable {
-  private file: string = "";
+export class File extends Exportable {
   private rootPath: string = "";
   private exportFromPath: string = "";
   private indexFilePath: string = "";
 
   private exports: Export[] = [];
 
-  async init(file: string): Promise<boolean> {
-    this.file = file;
+  async init(): Promise<void> {
+    if (!this.hasValidExtension()) return;
+    if (this.isIndex()) return;
 
-    if (!this.hasValidExtension()) return false;
-
-    this.preparePaths();
-
+    await this.preparePaths();
     await this.findExportsInFile();
-
-    return true;
+    await this.exportExports();
   }
 
-  async writeToFile(): Promise<void> {
-    const listOfExportables = this.exports
-      .map(exp => {
-        if (!exp.isDefault) return exp.name;
-
-        return `default as ${exp.name}`;
-      })
-      .join(", ");
-
-    const exportedData = `export { ${listOfExportables} } from '.${
-      this.exportFromPath
-    }';\n`;
-
-    await removeExportLinesBeforeUpdating(
-      this.indexFilePath,
-      this.exportFromPath
+  private exportExports(): void {
+    this.exporter.addExportsToIndex(
+      {
+        whatToExport: this.exports,
+        fromFile: this.exportFromPath
+      },
+      this.indexFilePath
     );
-    await appendFile(this.indexFilePath, exportedData);
-  }
-
-  getType(): FileType {
-    return FileType.File;
-  }
-
-  getFile(): string {
-    return this.file;
   }
 
   private hasValidExtension(): boolean {
-    const match = this.file.match(/.*\.(.+)$/);
+    const match = this.path.match(/.*\.(.+)$/);
 
     if (match && match.length > 1) {
       const ext = match[1];
@@ -68,8 +44,14 @@ export class File implements Exportable {
     return false;
   }
 
+  private isIndex(): boolean {
+    return this.path
+      .substring(0, this.path.lastIndexOf("."))
+      .endsWith("/index");
+  }
+
   private async findExportsInFile(): Promise<void> {
-    const fileContent: string = await loadFileToString(this.file);
+    const fileContent: string = await loadFileToString(this.path);
     const exportLines = matchAll(fileContent, /.*export .*/);
 
     this.exports = exportLines.reduce((exports: Export[], [line]) => {
@@ -104,14 +86,41 @@ export class File implements Exportable {
     return null;
   }
 
-  private preparePaths(): void {
-    this.rootPath = this.file.substring(0, this.file.lastIndexOf("/"));
-    this.exportFromPath = this.file.substring(
+  private async preparePaths(): Promise<void> {
+    this.rootPath = await this.getRootPath(this.path);
+
+    this.exportFromPath = this.path.substring(
       this.rootPath.length,
-      this.file.lastIndexOf(".")
+      this.path.lastIndexOf(".")
     );
 
-    const extension = this.file.indexOf(".js") === -1 ? "ts" : "js";
+    const extension = this.path.indexOf(".js") === -1 ? "ts" : "js";
     this.indexFilePath = `${this.rootPath}/index.${extension}`;
+  }
+
+  private async getRootPath(file: string): Promise<string> {
+    const rootPath = file.substring(0, file.lastIndexOf("/"));
+
+    if (!(await this.hasSibilings(rootPath))) {
+      return await this.getRootPath(rootPath);
+    }
+
+    return rootPath;
+  }
+
+  private async hasSibilings(dir: string): Promise<boolean> {
+    const files = await promisify(readdir)(dir, null);
+
+    const matchingFilesOrFolders = files.filter(file => {
+      const isJSFile = file.search(/\.(ts|js|tsx|jsx)$/) !== -1;
+      if (isJSFile) return true;
+
+      const isDirectory = file.search(/^[^\.][a-zA-Z0-9-_]*$/) !== -1;
+      if (isDirectory) return true;
+
+      return false;
+    });
+
+    return matchingFilesOrFolders.length > 1;
   }
 }

@@ -1,58 +1,35 @@
 import { promisify } from "util";
 import { readdir } from "fs";
 
-import { appendFile, removeExportLinesBeforeUpdating } from "../../util/utils";
-import { FileType } from "../../model";
-import { exportExportables } from "../../exporter/exporter";
 import { parseFiles } from "../../parser/parser";
-
 import { Exportable } from "../model";
 
-export class Directory implements Exportable {
-  private directory: string = "";
+export class Directory extends Exportable {
   private indexFilePath: string = "";
   private exportFromPath: string = "";
 
-  private exportables: Exportable[] = [];
-
-  async init(directory: string): Promise<boolean> {
-    this.directory = directory;
-
+  async init(): Promise<void> {
     await this.findExportsInDir();
-
-    return true;
-  }
-
-  async writeToFile(): Promise<void> {
-    await exportExportables(this.exportables);
 
     if (!(await this.hasIndex())) return;
 
     await this.preparePaths();
+    await this.exportToExporter();
+  }
 
-    const exportedData = `export * from '.${this.exportFromPath}';\n`;
-
-    await removeExportLinesBeforeUpdating(
-      this.indexFilePath,
-      this.exportFromPath
+  private async exportToExporter(): Promise<void> {
+    this.exporter.addExportsToIndex(
+      {
+        whatToExport: "*",
+        fromFile: this.exportFromPath
+      },
+      this.indexFilePath
     );
-    await appendFile(this.indexFilePath, exportedData);
-  }
-
-  getType(): FileType {
-    return FileType.Directory;
-  }
-
-  getFile(): string {
-    return this.directory;
   }
 
   private async preparePaths(): Promise<void> {
-    const rootPath: string = this.directory.substring(
-      0,
-      this.directory.lastIndexOf("/")
-    );
-    this.exportFromPath = this.directory.substring(rootPath.length);
+    const rootPath: string = this.path.substring(0, this.path.lastIndexOf("/"));
+    this.exportFromPath = this.path.substring(rootPath.length);
 
     const extension = await this.getExtension();
     this.indexFilePath = `${rootPath}/index.${extension}`;
@@ -60,13 +37,13 @@ export class Directory implements Exportable {
 
   private async findExportsInDir() {
     const files = await this.getFilesInDir();
-    this.exportables = await parseFiles(files);
+    await parseFiles(files, this.exporter);
   }
 
   private async getFilesInDir(): Promise<string[]> {
-    const files = await promisify(readdir)(this.directory);
+    const files = await promisify(readdir)(this.path);
 
-    const fullPathFiles = files.map(file => `${this.directory}/${file}`);
+    const fullPathFiles = files.map(file => `${this.path}/${file}`);
 
     return fullPathFiles;
   }
@@ -79,14 +56,23 @@ export class Directory implements Exportable {
       )
     );
 
-    if (!file) return "js";
+    if (!file) {
+      if (this.exporter.getIndexFiles().length === 0) return "js";
+
+      const index = this.exporter.getIndexFiles()[0];
+      return index.substring(index.lastIndexOf(".") + 1);
+    }
 
     return file.substring(file.lastIndexOf(".") + 1);
   }
 
   private async hasIndex(): Promise<boolean> {
-    const files = await this.getFilesInDir();
-    const index = files.find(file => file.includes("/index."));
+    const index = this.exporter
+      .getIndexFiles()
+      .find(
+        index =>
+          index.substring(0, index.lastIndexOf(".")) === `${this.path}/index`
+      );
 
     return !!index;
   }

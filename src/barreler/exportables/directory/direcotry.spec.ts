@@ -1,5 +1,4 @@
 import { Directory } from "./directory";
-import { FileType } from "../../model";
 import * as fs from "fs";
 import * as parser from "../../parser/parser";
 import * as exporter from "../../exporter/exporter";
@@ -11,24 +10,21 @@ jest.mock("../../parser/parser");
 jest.mock("../../exporter/exporter");
 
 describe("Directory", () => {
+  let exporter: exporter.Exporter;
   let directory: Directory;
 
   beforeEach(() => {
-    directory = new Directory();
-  });
+    exporter = {
+      addExportsToIndex: jest.fn(),
+      exportToFiles: jest.fn().mockResolvedValue(null),
+      getIndexFiles: jest.fn()
+    } as any;
 
-  it("should be Directory type", () => {
-    expect(directory.getType()).toBe(FileType.Directory);
-  });
-
-  it("should return file path", () => {
-    directory["directory"] = "dir/dir";
-
-    expect(directory.getFile()).toBe("dir/dir");
+    directory = new Directory("", exporter);
   });
 
   it("should get files in directory", async () => {
-    directory["directory"] = "dir/dir";
+    directory["path"] = "dir/dir";
     jest
       .spyOn(fs, "readdir")
       .mockImplementation((path, callback: any) =>
@@ -41,33 +37,68 @@ describe("Directory", () => {
   });
 
   describe("init", () => {
-    it("should find exportables", async () => {
+    beforeEach(() => {
       directory["findExportsInDir"] = jest.fn();
+      directory["hasIndex"] = jest.fn().mockResolvedValue(true);
+      directory["preparePaths"] = jest.fn();
+      directory["exportToExporter"] = jest.fn();
+    });
 
-      const res = await directory.init("");
+    it("should find exportables", async () => {
+      await directory.init();
 
       expect(directory["findExportsInDir"]).toHaveBeenCalled();
-      expect(res).toBe(true);
+    });
+
+    it("should check for index", async () => {
+      await directory.init();
+
+      expect(directory["hasIndex"]).toHaveBeenCalled();
+    });
+
+    it("should prepare paths", async () => {
+      await directory.init();
+
+      expect(directory["preparePaths"]).toHaveBeenCalled();
+    });
+
+    it("should export exports", async () => {
+      await directory.init();
+
+      expect(directory["exportToExporter"]).toHaveBeenCalled();
+    });
+  });
+
+  describe("export to exporter", () => {
+    it("should export exports via exporter", () => {
+      directory["exportFromPath"] = "fromPath";
+      directory["indexFilePath"] = "indexPath";
+
+      directory["exportToExporter"]();
+
+      expect(exporter.addExportsToIndex).toHaveBeenCalledWith(
+        {
+          whatToExport: "*",
+          fromFile: "fromPath"
+        },
+        "indexPath"
+      );
     });
   });
 
   it("should parse all files in dir when finding exports", async () => {
-    const mockDir = new Directory();
     directory["getFilesInDir"] = jest.fn().mockResolvedValue(["test.js"]);
-    const parserSpy = jest
-      .spyOn(parser, "parseFiles")
-      .mockResolvedValue([mockDir]);
+    const parserSpy = jest.spyOn(parser, "parseFiles").mockResolvedValue();
 
     await directory["findExportsInDir"]();
 
     expect(directory["getFilesInDir"]).toHaveBeenCalled();
-    expect(parserSpy).toHaveBeenCalledWith(["test.js"]);
-    expect(directory["exportables"]).toEqual([mockDir]);
+    expect(parserSpy).toHaveBeenCalledWith(["test.js"], exporter);
   });
 
   describe("prepare paths", () => {
     beforeEach(async () => {
-      directory["directory"] = "/project/folder";
+      directory["path"] = "/project/folder";
       directory["getExtension"] = jest.fn().mockResolvedValue("ts");
 
       await directory["preparePaths"]();
@@ -84,7 +115,7 @@ describe("Directory", () => {
   });
 
   describe("getExtension", () => {
-    it("should js extension", async () => {
+    it("should return js extension", async () => {
       directory["getFilesInDir"] = jest
         .fn()
         .mockResolvedValue(["style.css", "index.js", "file.ts"]);
@@ -94,7 +125,7 @@ describe("Directory", () => {
       expect(ext).toBe("js");
     });
 
-    it("should js extension", async () => {
+    it("should return ts extension", async () => {
       directory["getFilesInDir"] = jest
         .fn()
         .mockResolvedValue(["style.css", "file.ts"]);
@@ -103,74 +134,46 @@ describe("Directory", () => {
 
       expect(ext).toBe("ts");
     });
-  });
 
-  describe("writeToFile", () => {
-    let removeSpy: jest.SpyInstance;
-    let appendSpy: jest.SpyInstance;
-    let exporterSpy: jest.SpyInstance;
+    it("should return ts extension if not yet created files exist", async () => {
+      directory["getFilesInDir"] = jest.fn().mockResolvedValue([]);
+      jest.spyOn(exporter, "getIndexFiles").mockReturnValue(["/index.ts"]);
 
-    beforeEach(() => {
-      exporterSpy = jest
-        .spyOn(exporter, "exportExportables")
-        .mockImplementation();
-      removeSpy = jest
-        .spyOn(utils, "removeExportLinesBeforeUpdating")
-        .mockImplementation();
-      appendSpy = jest.spyOn(utils, "appendFile").mockImplementation();
+      const ext = await directory["getExtension"]();
 
-      directory["preparePaths"] = jest.fn().mockResolvedValue(null);
-      directory["hasIndex"] = jest.fn().mockResolvedValue(true);
-
-      directory["indexFilePath"] = "index.ts";
-      directory["exportFromPath"] = "/my-dir";
+      expect(ext).toBe("ts");
     });
 
-    it("should prepare paths", async () => {
-      await directory.writeToFile();
+    it("should return js extension if not yet created files exist", async () => {
+      directory["getFilesInDir"] = jest.fn().mockResolvedValue([]);
+      jest.spyOn(exporter, "getIndexFiles").mockReturnValue(["/index.js"]);
 
-      expect(directory["hasIndex"]).toHaveBeenCalled();
+      const ext = await directory["getExtension"]();
+
+      expect(ext).toBe("js");
     });
 
-    it("should prepare paths", async () => {
-      await directory.writeToFile();
+    it("should return default js if no files exist", async () => {
+      directory["getFilesInDir"] = jest.fn().mockResolvedValue([]);
+      jest.spyOn(exporter, "getIndexFiles").mockReturnValue([]);
 
-      expect(directory["preparePaths"]).toHaveBeenCalled();
-    });
+      const ext = await directory["getExtension"]();
 
-    it("should export all underlaying exportables", async () => {
-      await directory.writeToFile();
-
-      expect(exporterSpy).toHaveBeenCalled();
-    });
-
-    it("should remove matching lines", async () => {
-      await directory.writeToFile();
-
-      expect(removeSpy).toHaveBeenCalledWith("index.ts", "/my-dir");
-    });
-
-    it("should append an export", async () => {
-      await directory.writeToFile();
-
-      expect(appendSpy).toHaveBeenCalledWith(
-        "index.ts",
-        "export * from './my-dir';\n"
-      );
+      expect(ext).toBe("js");
     });
   });
 
   describe("hasIndex", () => {
     it("should return true if has index", async () => {
-      directory["getFilesInDir"] = jest.fn().mockResolvedValue(["/index.ts"]);
+      jest.spyOn(exporter, "getIndexFiles").mockReturnValue(["/index.ts"]);
 
       expect(await directory["hasIndex"]()).toBe(true);
     });
 
     it("should return false if does not have index", async () => {
-      directory["getFilesInDir"] = jest
-        .fn()
-        .mockResolvedValue(["/random-file.ts"]);
+      jest
+        .spyOn(exporter, "getIndexFiles")
+        .mockReturnValue(["/random-file.ts"]);
 
       expect(await directory["hasIndex"]()).toBe(false);
     });

@@ -1,16 +1,13 @@
-import { FileType } from "../model";
 import * as fs from "fs";
 import { promisify } from "util";
 
 export const appendFile = promisify(fs.appendFile);
 export const writeFile = promisify(fs.writeFile);
 
-export const getFileType = async (filePath: string): Promise<FileType> => {
+export const isDirectory = async (filePath: string): Promise<boolean> => {
   const stats: fs.Stats = await promisify(fs.stat)(filePath);
 
-  if (stats.isDirectory()) return FileType.Directory;
-
-  return FileType.File;
+  return stats.isDirectory();
 };
 
 export const loadFileToString = async (filePath: string): Promise<string> => {

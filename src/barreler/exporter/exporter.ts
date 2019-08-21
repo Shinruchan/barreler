@@ -1,34 +1,76 @@
-import { Exportable } from "../exportables";
-import { FileType } from "../model";
+import { ExportLine, Export } from "../exportables/model";
+import {
+  removeExportLinesBeforeUpdating,
+  appendFile,
+  compareFileExportsFirst,
+  compareAlphabetically,
+  compareDefaultFirst
+} from "../util";
 
-export const exportExportables = async (
-  exportables: Exportable[]
-): Promise<void> => {
-  const sorted = exportables.sort(compareFileExportsFirst);
+export class Exporter {
+  private indexFiles: Map<string, ExportLine[]> = new Map();
 
-  for (const exportable of sorted) {
-    await exportable.writeToFile();
+  addExportsToIndex(exportLine: ExportLine, indexFile: string) {
+    const existingExportLines = this.indexFiles.get(indexFile);
+
+    if (existingExportLines) {
+      this.indexFiles.set(indexFile, [...existingExportLines, exportLine]);
+    } else {
+      this.indexFiles.set(indexFile, [exportLine]);
+    }
   }
-};
 
-export const compareFileExportsFirst = (exp1: Exportable, exp2: Exportable) => {
-  if (
-    exp1.getType() === FileType.Directory &&
-    exp2.getType() === FileType.File
-  ) {
-    return 1;
+  getIndexFiles(): string[] {
+    return Array.from(this.indexFiles.keys());
   }
-  if (
-    exp1.getType() === FileType.File &&
-    exp2.getType() === FileType.Directory
-  ) {
-    return -1;
-  }
-  return compareAlphabetically(exp1.getFile(), exp2.getFile());
-};
 
-export const compareAlphabetically = (file1: string, file2: string) => {
-  if (file1 < file2) return -1;
-  if (file1 > file2) return 1;
-  return 0;
-};
+  async exportToFiles() {
+    for (let index of this.getIndexFiles()) {
+      let exportLines = this.indexFiles.get(index);
+      if (!exportLines) return false;
+
+      exportLines = exportLines.sort(compareFileExportsFirst);
+
+      for (const line of exportLines) {
+        if (typeof line.whatToExport === "string") {
+          await this.exportStringLineToFile(line, index);
+        } else {
+          await this.exportExportsLineToFile(line, index);
+        }
+      }
+    }
+  }
+
+  private async exportStringLineToFile(line: ExportLine, file: string) {
+    const toBeWritten = `export ${line.whatToExport} from '.${
+      line.fromFile
+    }';\n`;
+
+    await removeExportLinesBeforeUpdating(file, line.fromFile);
+    await appendFile(file, toBeWritten);
+  }
+
+  private async exportExportsLineToFile(line: ExportLine, file: string) {
+    let listOfExports = line.whatToExport as Export[];
+
+    listOfExports = listOfExports.sort((a, b) =>
+      compareAlphabetically(a.name, b.name)
+    );
+    listOfExports = listOfExports.sort(compareDefaultFirst);
+
+    const listOfExportables = listOfExports
+      .map(exp => {
+        if (!exp.isDefault) return exp.name;
+
+        return `default as ${exp.name}`;
+      })
+      .join(", ");
+
+    const toBeWritten = `export { ${listOfExportables} } from '.${
+      line.fromFile
+    }';\n`;
+
+    await removeExportLinesBeforeUpdating(file, line.fromFile);
+    await appendFile(file, toBeWritten);
+  }
+}
