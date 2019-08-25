@@ -8,5 +8,7 @@ export {
   isDirectory,
   loadFileToString,
   removeExportLinesBeforeUpdating,
-  writeFile
+  writeFile,
+  isMachedPath
 } from "./utils";
+export { filePathToRegex } from "./to-regex";

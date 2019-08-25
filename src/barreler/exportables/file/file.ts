@@ -1,12 +1,11 @@
 import { Exportable, Export } from "../model";
 import matchAll from "@danielberndt/match-all";
-import { loadFileToString } from "../../util";
+import { loadFileToString, isMachedPath } from "../../util";
 import { promisify } from "util";
 import { readdir } from "fs";
 import { BarrelerMode } from "../../model";
 
 const reservedWordsRegex = /\b(export|class|abstract|var|let|const|interface|type|enum|function|default)\b/g;
-const fileExtensions = ["js", "jsx", "ts", "tsx"];
 
 export class File extends Exportable {
   private rootPath: string = "";
@@ -16,7 +15,8 @@ export class File extends Exportable {
   private exports: Export[] = [];
 
   async init(): Promise<void> {
-    if (!this.hasValidExtension()) return;
+    if (isMachedPath(this.path, this.options.exclude)) return;
+    if (!isMachedPath(this.path, this.options.include)) return;
     if (this.isIndex()) return;
 
     await this.preparePaths();
@@ -32,17 +32,6 @@ export class File extends Exportable {
       },
       this.indexFilePath
     );
-  }
-
-  private hasValidExtension(): boolean {
-    const match = this.path.match(/.*\.(.+)$/);
-
-    if (match && match.length > 1) {
-      const ext = match[1];
-      return fileExtensions.includes(ext);
-    }
-
-    return false;
   }
 
   private isIndex(): boolean {
@@ -115,8 +104,8 @@ export class File extends Exportable {
     const files = await promisify(readdir)(dir, null);
 
     const matchingFilesOrFolders = files.filter(file => {
-      const isJSFile = file.search(/\.(ts|js|tsx|jsx)$/) !== -1;
-      if (isJSFile) return true;
+      if (isMachedPath(file, this.options.exclude)) return false;
+      if (isMachedPath(file, this.options.include)) return true;
 
       const isDirectory = file.search(/^[^\.][a-zA-Z0-9-_]*$/) !== -1;
       if (isDirectory) return true;

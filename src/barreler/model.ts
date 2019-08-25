@@ -5,4 +5,6 @@ export enum BarrelerMode {
 
 export interface BarrelerOptions {
   mode: BarrelerMode;
+  include: string[];
+  exclude: string[];
 }

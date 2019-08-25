@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import { promisify } from "util";
+import { filePathToRegex } from "./to-regex";
 
 export const appendFile = promisify(fs.appendFile);
 export const writeFile = promisify(fs.writeFile);
@@ -34,4 +35,16 @@ export const removeExportLinesBeforeUpdating = async (
 
     await writeFile(indexFilePath, modifiedLines.join("\n"));
   } catch {}
+};
+
+export const isMachedPath = (path: string, patterns: string[]): boolean => {
+  if (!patterns) return false;
+
+  for (const pattern of patterns) {
+    let patternRegex = filePathToRegex(pattern);
+
+    if (path.search(patternRegex) !== -1) return true;
+  }
+
+  return false;
 };

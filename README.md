@@ -34,7 +34,9 @@ barreler ./file.js ./file.js ./folder
 Options:
 
 ```sh
---mode, -m  Select mode values = ['all-level-index', 'multifile-index']
+--mode, -m      Select mode values = ['all-level-index', 'multifile-index']
+--include, -i   Sets pattern for file inclusion. Comma separated list. default: *.[jt]s(x)?
+--exclude, -e   Sets pattern for file exclusion. Comma separated list. default: *(spec|test).[jt]s(x)?,*__tests__/*.[jt]s(x)?
 ```
 
 #### Use as npm dependency
@@ -51,7 +53,9 @@ Options:
 
 ```ts
 BarrelerOptions {
-  mode: BarrelerMode;
+  mode: BarrelerMode; // default: BarrelerMode.MultiFileIndex
+  include: string[];  // default: ["*.[jt]s(x)?"],
+  exclude: string[];  // default: ["*(spec|test).[jt]s(x)?", "*__tests__/*.[jt]s(x)?"]
 }
 ```
 
@@ -68,12 +72,12 @@ Example:
 |-- index.ts <-- generated (export from: company.ts, /farm and /store)
 |-- company.ts
 |-- /services
-| |-- farm.service.ts
-| |-- index.ts <-- generated
+|   |-- farm.service.ts
+|   |-- index.ts <-- generated
 |-- /store
-| |-- chicken.store.ts
-| |-- pig.store.ts
-| |-- index.ts <-- generated
+|   |-- chicken.store.ts
+|   |-- pig.store.ts
+|   |-- index.ts <-- generated
 
 ```
 

@@ -16,24 +16,38 @@ describe("File", () => {
       exportToFiles: jest.fn().mockResolvedValue(null)
     } as any;
 
-    file = new File("my-file.js", exporter, {} as any);
+    file = new File("my-file.js", exporter, {
+      include: ["include"],
+      exclude: ["exclude"]
+    } as any);
   });
 
   describe("init", () => {
     beforeEach(() => {
-      file["hasValidExtension"] = jest.fn().mockReturnValue(true);
+      jest
+        .spyOn(utils, "isMachedPath")
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true);
       file["isIndex"] = jest.fn();
       file["preparePaths"] = jest.fn().mockResolvedValue(null);
       file["findExportsInFile"] = jest.fn().mockResolvedValue(null);
       file["exportExports"] = jest.fn().mockResolvedValue(null);
     });
 
-    it("should validate file extension", async () => {
-      file["hasValidExtension"] = jest.fn().mockReturnValue(false);
-
+    it("should validate file exclusion", async () => {
       await file.init();
 
-      expect(file["hasValidExtension"]).toHaveBeenCalled();
+      expect(utils.isMachedPath).toHaveBeenCalledWith("my-file.js", [
+        "exclude"
+      ]);
+    });
+
+    it("should validate file inclusion", async () => {
+      await file.init();
+
+      expect(utils.isMachedPath).toHaveBeenCalledWith("my-file.js", [
+        "include"
+      ]);
     });
 
     it("should validate index file", async () => {
@@ -76,38 +90,6 @@ describe("File", () => {
         },
         "indexPath"
       );
-    });
-  });
-
-  describe("extension validator", () => {
-    it("should allow .js", () => {
-      file["path"] = "file.js";
-
-      expect(file["hasValidExtension"]()).toBe(true);
-    });
-
-    it("should allow .jsx", () => {
-      file["path"] = "file.jsx";
-
-      expect(file["hasValidExtension"]()).toBe(true);
-    });
-
-    it("should allow .ts", () => {
-      file["path"] = "file.ts";
-
-      expect(file["hasValidExtension"]()).toBe(true);
-    });
-
-    it("should allow .tsx", () => {
-      file["path"] = "file.tsx";
-
-      expect(file["hasValidExtension"]()).toBe(true);
-    });
-
-    it("should not allow other", () => {
-      file["path"] = "file.css";
-
-      expect(file["hasValidExtension"]()).toBe(false);
     });
   });
 
@@ -397,43 +379,65 @@ describe("File", () => {
         );
     };
 
-    it("should be true if include .ts sibiling", async () => {
+    it("should be true if include included file sibiling", async () => {
+      jest
+        .spyOn(utils, "isMachedPath")
+        .mockReturnValueOnce(false) // target file is not excluded
+        .mockReturnValueOnce(true) // target file is included
+        .mockReturnValueOnce(false) // sibiling is not excluded
+        .mockReturnValueOnce(true); // sibiling is included
+
       setFiles(["my-file.ts", "file.ts"]);
 
       expect(await file["hasSibilings"]("dir")).toBe(true);
     });
 
-    it("should be true if include .js sibiling", async () => {
-      setFiles(["my-file.ts", "file.js"]);
-
-      expect(await file["hasSibilings"]("dir")).toBe(true);
-    });
-
-    it("should be true if include .jsx sibiling", async () => {
-      setFiles(["my-file.ts", "file.jsx"]);
-
-      expect(await file["hasSibilings"]("dir")).toBe(true);
-    });
-
-    it("should be true if include .tsx sibiling", async () => {
-      setFiles(["my-file.ts", "file.tsx"]);
-
-      expect(await file["hasSibilings"]("dir")).toBe(true);
-    });
-
     it("should be false if include only non-exportable sibiling", async () => {
+      jest
+        .spyOn(utils, "isMachedPath")
+        .mockReturnValueOnce(false) // target file is not excluded
+        .mockReturnValueOnce(true) // target file is included
+        .mockReturnValueOnce(false) // sibiling is not excluded
+        .mockReturnValueOnce(false); // sibiling is not included
+
       setFiles(["my-file.ts", "file.css"]);
 
       expect(await file["hasSibilings"]("dir")).toBe(false);
     });
 
+    it("should be false if sibiling is excluded", async () => {
+      jest
+        .spyOn(utils, "isMachedPath")
+        .mockReturnValueOnce(false) // target file is not excluded
+        .mockReturnValueOnce(true) // target file is included
+        .mockReturnValueOnce(true); // sibiling is excluded
+
+      setFiles(["my-file.ts", "file.spec.ts"]);
+
+      expect(await file["hasSibilings"]("dir")).toBe(false);
+    });
+
     it("should be true if include folder sibiling", async () => {
+      jest
+        .spyOn(utils, "isMachedPath")
+        .mockReturnValueOnce(false) // target file is not excluded
+        .mockReturnValueOnce(true) // target file is included
+        .mockReturnValueOnce(false) // sibiling is not excluded
+        .mockReturnValueOnce(false); // sibiling is not included
+
       setFiles(["my-file.ts", "folder"]);
 
       expect(await file["hasSibilings"]("dir")).toBe(true);
     });
 
     it("should be true if include folder-with-dash sibiling", async () => {
+      jest
+        .spyOn(utils, "isMachedPath")
+        .mockReturnValueOnce(false) // target file is not excluded
+        .mockReturnValueOnce(true) // target file is included
+        .mockReturnValueOnce(false) // sibiling is not excluded
+        .mockReturnValueOnce(false); // sibiling is not included
+
       setFiles(["my-file.ts", "folder-with-dash"]);
 
       expect(await file["hasSibilings"]("dir")).toBe(true);

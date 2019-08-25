@@ -3,12 +3,14 @@ import { Exporter } from "./exporter/exporter";
 import { BarrelerOptions, BarrelerMode } from "./model";
 
 export const defaultOptions: BarrelerOptions = {
-  mode: BarrelerMode.MultiFileIndex
+  mode: BarrelerMode.MultiFileIndex,
+  include: ["*.[jt]s(x)?"],
+  exclude: ["*(spec|test).[jt]s(x)?", "*__tests__/*.[jt]s(x)?"]
 };
 
 export const barrel = async (
   files: string[],
-  options?: BarrelerOptions
+  options?: Partial<BarrelerOptions>
 ): Promise<void> => {
   const opts: BarrelerOptions = {
     ...defaultOptions,
