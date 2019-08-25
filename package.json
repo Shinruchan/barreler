@@ -1,6 +1,6 @@
 {
   "name": "barreler",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Generator for barrel files (export from index files) for JavaScript and TypeScript.",
   "bin": {
     "barreler": "./lib/cli/index.js"
@@ -34,6 +34,7 @@
   "homepage": "https://github.com/Shinruchan/barreler#readme",
   "devDependencies": {
     "@types/jest": "^24.0.17",
+    "@types/meow": "^5.0.0",
     "@types/node": "^12.7.2",
     "jest": "^24.9.0",
     "nodemon": "^1.19.1",
@@ -42,7 +43,8 @@
     "typescript": "^3.5.3"
   },
   "dependencies": {
-    "@danielberndt/match-all": "^1.0.0"
+    "@danielberndt/match-all": "^1.0.0",
+    "meow": "^5.0.0"
   },
   "jest": {
     "preset": "ts-jest",

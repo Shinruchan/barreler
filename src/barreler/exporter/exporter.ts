@@ -42,9 +42,7 @@ export class Exporter {
   }
 
   private async exportStringLineToFile(line: ExportLine, file: string) {
-    const toBeWritten = `export ${line.whatToExport} from '.${
-      line.fromFile
-    }';\n`;
+    const toBeWritten = `export ${line.whatToExport} from '.${line.fromFile}';\n`;
 
     await removeExportLinesBeforeUpdating(file, line.fromFile);
     await appendFile(file, toBeWritten);
@@ -66,9 +64,7 @@ export class Exporter {
       })
       .join(", ");
 
-    const toBeWritten = `export { ${listOfExportables} } from '.${
-      line.fromFile
-    }';\n`;
+    const toBeWritten = `export { ${listOfExportables} } from '.${line.fromFile}';\n`;
 
     await removeExportLinesBeforeUpdating(file, line.fromFile);
     await appendFile(file, toBeWritten);

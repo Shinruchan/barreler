@@ -8,7 +8,7 @@ describe("parser", () => {
       jest.spyOn(utils, "isDirectory").mockResolvedValue(false);
       File.prototype.init = jest.fn().mockResolvedValue(true);
 
-      await parseFiles(["./file.ts"], {} as any);
+      await parseFiles(["./file.ts"], {} as any, {} as any);
 
       expect(File.prototype.init).toHaveBeenCalled();
     });
@@ -17,7 +17,7 @@ describe("parser", () => {
       jest.spyOn(utils, "isDirectory").mockResolvedValue(true);
       Directory.prototype.init = jest.fn().mockResolvedValue(true);
 
-      await parseFiles(["./dir"], {} as any);
+      await parseFiles(["./dir"], {} as any, {} as any);
 
       expect(Directory.prototype.init).toHaveBeenCalled();
     });

@@ -2,7 +2,7 @@ import { Directory } from "./directory";
 import * as fs from "fs";
 import * as parser from "../../parser/parser";
 import * as exporter from "../../exporter/exporter";
-import * as utils from "../../util/utils";
+import { defaultOptions } from "../../barrel";
 
 jest.mock("fs");
 jest.mock("../../util/utils");
@@ -20,7 +20,7 @@ describe("Directory", () => {
       getIndexFiles: jest.fn()
     } as any;
 
-    directory = new Directory("", exporter);
+    directory = new Directory("", exporter, {} as any);
   });
 
   it("should get files in directory", async () => {
@@ -93,7 +93,7 @@ describe("Directory", () => {
     await directory["findExportsInDir"]();
 
     expect(directory["getFilesInDir"]).toHaveBeenCalled();
-    expect(parserSpy).toHaveBeenCalledWith(["test.js"], exporter);
+    expect(parserSpy).toHaveBeenCalledWith(["test.js"], exporter, {});
   });
 
   describe("prepare paths", () => {
