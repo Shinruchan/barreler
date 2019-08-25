@@ -1,14 +1,6 @@
+export { barrel, defaultOptions } from "./barrel";
+export { Exporter } from "./exporter/exporter";
+export { BarrelerMode, BarrelerOptions } from "./model";
 export { parseFiles } from "./parser/parser";
-export {
-  appendFile,
-  writeFile,
-  loadFileToString,
-  removeExportLinesBeforeUpdating,
-  compareAlphabetically,
-  compareDefaultFirst,
-  compareFileExportsFirst,
-  isDirectory
-} from "./util";
-export { barrel } from "./barrel";
-
 export * from "./exportables";
+export * from "./util";
