@@ -16,7 +16,7 @@ describe("File", () => {
       exportToFiles: jest.fn().mockResolvedValue(null)
     } as any;
 
-    file = new File("my-file.js", exporter);
+    file = new File("my-file.js", exporter, {} as any);
   });
 
   describe("init", () => {

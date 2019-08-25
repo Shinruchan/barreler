@@ -37,7 +37,7 @@ export class Directory extends Exportable {
 
   private async findExportsInDir() {
     const files = await this.getFilesInDir();
-    await parseFiles(files, this.exporter);
+    await parseFiles(files, this.exporter, this.options);
   }
 
   private async getFilesInDir(): Promise<string[]> {

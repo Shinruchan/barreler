@@ -10,7 +10,8 @@ describe("barrel", () => {
 
     expect(parserSpy).toHaveBeenCalledWith(
       ["a", "b", "c"],
-      expect.any(Exporter)
+      expect.any(Exporter),
+      expect.any(Object),
     );
   });
 

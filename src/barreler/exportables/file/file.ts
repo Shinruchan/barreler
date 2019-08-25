@@ -3,6 +3,7 @@ import matchAll from "@danielberndt/match-all";
 import { loadFileToString } from "../../util";
 import { promisify } from "util";
 import { readdir } from "fs";
+import { BarrelerMode } from "../../model";
 
 const reservedWordsRegex = /\b(export|class|abstract|var|let|const|interface|type|enum|function|default)\b/g;
 const fileExtensions = ["js", "jsx", "ts", "tsx"];
@@ -100,6 +101,8 @@ export class File extends Exportable {
 
   private async getRootPath(file: string): Promise<string> {
     const rootPath = file.substring(0, file.lastIndexOf("/"));
+
+    if (this.options.mode === BarrelerMode.AllLevelIndex) return rootPath;
 
     if (!(await this.hasSibilings(rootPath))) {
       return await this.getRootPath(rootPath);
