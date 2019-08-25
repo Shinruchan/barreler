@@ -42,12 +42,12 @@ export class File extends Exportable {
 
   private async findExportsInFile(): Promise<void> {
     const fileContent: string = await loadFileToString(this.path);
-    const exportLines = matchAll(fileContent, /.*export .*/);
+    const exportLines = matchAll(fileContent, /\s*export .*/);
 
     this.exports = exportLines.reduce((exports: Export[], [line]) => {
       const exportFromLine = this.findExportableNameFromLine(line);
 
-      if (exportFromLine) {
+      if (exportFromLine && exportFromLine.name) {
         exports.push(exportFromLine);
       }
 
@@ -56,7 +56,7 @@ export class File extends Exportable {
   }
 
   private findExportableNameFromLine(line: string): Export | null {
-    const isDefault = !!line.match(/\bdefault/g);
+    const isDefault = !!line.match(/\bdefault\b/g);
 
     const withoutReservedWords = line.replace(reservedWordsRegex, "");
     const withoutBeginningSpaces = withoutReservedWords.replace(/^\s*/, "");

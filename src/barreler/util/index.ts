@@ -3,12 +3,12 @@ export {
   compareDefaultFirst,
   compareFileExportsFirst
 } from "./sort";
+export { filePathToRegex } from "./to-regex";
 export {
   appendFile,
   isDirectory,
+  isMachedPath,
   loadFileToString,
   removeExportLinesBeforeUpdating,
-  writeFile,
-  isMachedPath
+  writeFile
 } from "./utils";
-export { filePathToRegex } from "./to-regex";
