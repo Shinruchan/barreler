@@ -287,6 +287,14 @@ describe("File", () => {
       expect(exp!.name).toEqual("myArrow");
     });
 
+    it("should find function with async", () => {
+      const exp = file["findExportableNameFromLine"](
+        "export async function myFunction() {}"
+      );
+
+      expect(exp!.name).toEqual("myFunction");
+    });
+
     describe("isDefault", () => {
       it("should find non-default export", () => {
         const exp = file["findExportableNameFromLine"](

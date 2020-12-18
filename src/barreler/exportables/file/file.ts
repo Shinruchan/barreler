@@ -5,7 +5,7 @@ import { promisify } from "util";
 import { readdir } from "fs";
 import { BarrelerMode } from "../../model";
 
-const reservedWordsRegex = /\b(export|class|abstract|var|let|const|interface|type|enum|function|default)\b/g;
+const reservedWordsRegex = /\b(export|class|abstract|var|let|const|interface|type|enum|function|default|async)\b/g;
 
 export class File extends Exportable {
   private rootPath: string = "";
