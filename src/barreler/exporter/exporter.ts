@@ -4,7 +4,7 @@ import {
   appendFile,
   compareFileExportsFirst,
   compareAlphabetically,
-  compareDefaultFirst
+  compareDefaultFirst,
 } from "../util";
 
 export class Exporter {
@@ -42,7 +42,8 @@ export class Exporter {
   }
 
   private async exportStringLineToFile(line: ExportLine, file: string) {
-    const toBeWritten = `export ${line.whatToExport} from '.${line.fromFile}';\n`;
+    const typePart = line.fromFile.includes(".d") ? "type " : "";
+    const toBeWritten = `export ${typePart}${line.whatToExport} from '.${line.fromFile}';\n`;
 
     await removeExportLinesBeforeUpdating(file, line.fromFile);
     await appendFile(file, toBeWritten);
@@ -57,14 +58,14 @@ export class Exporter {
     listOfExports = listOfExports.sort(compareDefaultFirst);
 
     const listOfExportables = listOfExports
-      .map(exp => {
+      .map((exp) => {
         if (!exp.isDefault) return exp.name;
 
         return `default as ${exp.name}`;
       })
       .join(", ");
-
-    const toBeWritten = `export { ${listOfExportables} } from '.${line.fromFile}';\n`;
+    const typePart = line.fromFile.includes(".d") ? "type " : "";
+    const toBeWritten = `export ${typePart}{ ${listOfExportables} } from '.${line.fromFile}';\n`;
 
     await removeExportLinesBeforeUpdating(file, line.fromFile);
     await appendFile(file, toBeWritten);
