@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import meow from "meow";
-import { barrel } from "../barreler";
-import { BarrelerOptions } from "../barreler/model";
+import { barrel } from "../barreler/index.js";
+import { BarrelerOptions } from "../barreler/model.js";
 
 const cli = meow(
   `
@@ -17,20 +17,21 @@ const cli = meow(
       $ barreler ./file.ts ./folder
 `,
   {
+    importMeta: import.meta,
     flags: {
       mode: {
         type: "string",
-        alias: "m"
+        shortFlag: "m",
       },
       include: {
         type: "string",
-        alias: "i"
+        shortFlag: "i",
       },
       exclude: {
         type: "string",
-        alias: "e"
-      }
-    }
+        shortFlag: "e",
+      },
+    },
   }
 );
 

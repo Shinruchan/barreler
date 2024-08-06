@@ -1,11 +1,11 @@
-import { ExportLine, Export } from "../exportables/model";
+import { ExportLine, Export } from "../exportables/model.js";
 import {
   removeExportLinesBeforeUpdating,
   appendFile,
   compareFileExportsFirst,
   compareAlphabetically,
-  compareDefaultFirst
-} from "../util";
+  compareDefaultFirst,
+} from "../util/index.js";
 
 export class Exporter {
   private indexFiles: Map<string, ExportLine[]> = new Map();
@@ -57,7 +57,7 @@ export class Exporter {
     listOfExports = listOfExports.sort(compareDefaultFirst);
 
     const listOfExportables = listOfExports
-      .map(exp => {
+      .map((exp) => {
         if (!exp.isDefault) return exp.name;
 
         return `default as ${exp.name}`;

@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "lib": ["es6"],
     "declaration": true,
     "outDir": "lib",
@@ -11,5 +12,5 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "exclude": ["lib","**/*.spec.ts"]
+  "exclude": ["lib", "**/*.spec.ts"]
 }

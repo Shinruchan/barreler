@@ -1,9 +1,9 @@
-import { Exportable, Export } from "../model";
+import { Exportable, Export } from "../model.js";
 import matchAll from "@danielberndt/match-all";
-import { loadFileToString, isMachedPath } from "../../util";
+import { loadFileToString, isMachedPath } from "../../util/index.js";
 import { promisify } from "util";
 import { readdir } from "fs";
-import { BarrelerMode } from "../../model";
+import { BarrelerMode } from "../../model.js";
 
 const reservedWordsRegex = /\b(export|class|abstract|var|let|const|interface|type|enum|function|default)\b/g;
 

@@ -6,9 +6,9 @@ jest.mock("fs");
 describe("utils", () => {
   describe("isDirectory", () => {
     it("should get directory", async () => {
-      jest.spyOn(fs, "stat").mockImplementation((path, callback) =>
+      jest.spyOn(fs, "stat").mockImplementation((path, callback: any) =>
         callback(null, {
-          isDirectory: () => true
+          isDirectory: () => true,
         } as any)
       );
 
@@ -18,9 +18,9 @@ describe("utils", () => {
     });
 
     it("should get file", async () => {
-      jest.spyOn(fs, "stat").mockImplementation((path, callback) =>
+      jest.spyOn(fs, "stat").mockImplementation((path, callback: any) =>
         callback(null, {
-          isDirectory: () => false
+          isDirectory: () => false,
         } as any)
       );
 
