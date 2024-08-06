@@ -1,8 +1,8 @@
 import { promisify } from "util";
 import { readdir } from "fs";
 
-import { parseFiles } from "../../parser/parser.js";
-import { Exportable } from "../model.js";
+import { parseFiles } from "../../parser/parser";
+import { Exportable } from "../model";
 
 export class Directory extends Exportable {
   private indexFilePath: string = "";

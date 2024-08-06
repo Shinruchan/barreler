@@ -1,11 +1,11 @@
-import { ExportLine, Export } from "../exportables/model.js";
+import { ExportLine, Export } from "../exportables/model";
 import {
   removeExportLinesBeforeUpdating,
   appendFile,
   compareFileExportsFirst,
   compareAlphabetically,
   compareDefaultFirst,
-} from "../util/index.js";
+} from "../util/index";
 
 export class Exporter {
   private indexFiles: Map<string, ExportLine[]> = new Map();

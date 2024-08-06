@@ -1,5 +1,5 @@
-import { Exporter } from "../exporter/exporter.js";
-import { BarrelerOptions } from "../model.js";
+import { Exporter } from "../exporter/exporter";
+import { BarrelerOptions } from "../model";
 
 export abstract class Exportable {
   constructor(

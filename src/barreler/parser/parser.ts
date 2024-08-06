@@ -1,7 +1,7 @@
-import { Exportable, File, Directory } from "../exportables/index.js";
-import { isDirectory } from "../util/index.js";
-import { Exporter } from "../exporter/exporter.js";
-import { BarrelerOptions } from "../model.js";
+import { Exportable, File, Directory } from "../exportables/index";
+import { isDirectory } from "../util/index";
+import { Exporter } from "../exporter/exporter";
+import { BarrelerOptions } from "../model";
 
 export const parseFiles = async (
   paths: string[],

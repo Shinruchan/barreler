@@ -1,13 +1,12 @@
 {
   "name": "barreler",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Generator for barrel files (export from index files) for JavaScript and TypeScript.",
   "bin": {
     "barreler": "./lib/cli/index.js"
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "type": "module",
   "scripts": {
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'tsx' src/cli/index.ts",
     "cli": "tsx ./src/cli/index.ts",
@@ -45,10 +44,10 @@
   },
   "dependencies": {
     "@danielberndt/match-all": "^1.0.0",
-    "meow": "^13.2.0"
+    "meow": "9.0.0"
   },
   "jest": {
-    "preset": "ts-jest/presets/default-esm",
+    "preset": "ts-jest/presets/default",
     "resetMocks": true,
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1"
@@ -57,7 +56,6 @@
       "^.+\\.tsx?$": [
         "ts-jest",
         {
-          "useESM": true,
           "tsconfig": "./tsconfig.spec.json"
         }
       ]
