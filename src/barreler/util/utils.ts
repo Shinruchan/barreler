@@ -19,7 +19,8 @@ export const loadFileToString = async (filePath: string): Promise<string> => {
 
 export const removeExportLinesBeforeUpdating = async (
   indexFilePath: string,
-  searchPattern: string
+  searchPattern: string,
+  isType: boolean
 ) => {
   try {
     const fileData = await loadFileToString(indexFilePath);
@@ -29,9 +30,12 @@ export const removeExportLinesBeforeUpdating = async (
 
     const lines = fileDataUnformatted.split("\n");
 
-    const modifiedLines = lines.filter(
-      (line) => line.indexOf(searchPattern) === -1
-    );
+    const modifiedLines = lines.filter((line) => {
+      if (line.indexOf(searchPattern) === -1) return true;
+      if (line.includes("export type") !== isType) return true;
+
+      return false;
+    });
 
     await writeFile(indexFilePath, modifiedLines.join("\n"));
   } catch {}

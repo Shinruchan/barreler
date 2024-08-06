@@ -5,7 +5,8 @@ import { promisify } from "util";
 import { readdir } from "fs";
 import { BarrelerMode } from "../../model.js";
 
-const reservedWordsRegex = /\b(export|class|abstract|var|let|const|interface|type|enum|function|default)\b/g;
+const reservedWordsRegex =
+  /\b(export|class|abstract|var|let|const|interface|type|enum|function|default)\b/g;
 
 export class File extends Exportable {
   private rootPath: string = "";
@@ -13,6 +14,7 @@ export class File extends Exportable {
   private indexFilePath: string = "";
 
   private exports: Export[] = [];
+  private typeExports: Export[] = [];
 
   async init(): Promise<void> {
     if (isMachedPath(this.path, this.options.exclude)) return;
@@ -25,13 +27,25 @@ export class File extends Exportable {
   }
 
   private exportExports(): void {
-    this.exporter.addExportsToIndex(
-      {
-        whatToExport: this.exports,
-        fromFile: this.exportFromPath
-      },
-      this.indexFilePath
-    );
+    if (this.exports.length > 0) {
+      this.exporter.addExportsToIndex(
+        {
+          whatToExport: this.exports,
+          fromFile: this.exportFromPath,
+        },
+        this.indexFilePath
+      );
+    }
+
+    if (this.typeExports.length > 0) {
+      this.exporter.addExportsToIndex(
+        {
+          whatToExport: this.typeExports,
+          fromFile: this.exportFromPath,
+        },
+        this.indexFilePath
+      );
+    }
   }
 
   private isIndex(): boolean {
@@ -44,19 +58,24 @@ export class File extends Exportable {
     const fileContent: string = await loadFileToString(this.path);
     const exportLines = matchAll(fileContent, /(?:(?!\n)\s)*export .*/);
 
-    this.exports = exportLines.reduce((exports: Export[], [line]) => {
+    exportLines.forEach(([line]) => {
       const exportFromLine = this.findExportableNameFromLine(line);
 
-      if (exportFromLine && exportFromLine.name) {
-        exports.push(exportFromLine);
+      if (!exportFromLine?.name) return;
+
+      if (exportFromLine.isType) {
+        this.typeExports.push(exportFromLine);
+
+        return;
       }
 
-      return exports;
-    }, []);
+      this.exports.push(exportFromLine);
+    });
   }
 
   private findExportableNameFromLine(line: string): Export | null {
     const isDefault = !!line.match(/\bdefault\b/g);
+    const isType = !!line.match(/\btype|interface\b/g);
 
     const withoutReservedWords = line.replace(reservedWordsRegex, "");
     const withoutBeginningSpaces = withoutReservedWords.replace(/^\s*/, "");
@@ -69,7 +88,8 @@ export class File extends Exportable {
     if (exportName) {
       return {
         name: exportName[0],
-        isDefault
+        isDefault,
+        isType,
       };
     }
 
@@ -103,7 +123,7 @@ export class File extends Exportable {
   private async hasSibilings(dir: string): Promise<boolean> {
     const files = await promisify(readdir)(dir, null);
 
-    const matchingFilesOrFolders = files.filter(file => {
+    const matchingFilesOrFolders = files.filter((file) => {
       if (isMachedPath(file, this.options.exclude)) return false;
       if (isMachedPath(file, this.options.include)) return true;
 
