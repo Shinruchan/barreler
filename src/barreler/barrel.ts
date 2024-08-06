@@ -1,6 +1,6 @@
-import { parseFiles } from "./parser/parser.js";
-import { Exporter } from "./exporter/exporter.js";
-import { BarrelerOptions, BarrelerMode } from "./model.js";
+import { parseFiles } from "./parser/parser";
+import { Exporter } from "./exporter/exporter";
+import { BarrelerOptions, BarrelerMode } from "./model";
 
 export const defaultOptions: BarrelerOptions = {
   mode: BarrelerMode.MultiFileIndex,

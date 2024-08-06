@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { promisify } from "util";
-import { filePathToRegex } from "./to-regex.js";
+import { filePathToRegex } from "./to-regex";
 
 export const appendFile = promisify(fs.appendFile);
 export const writeFile = promisify(fs.writeFile);

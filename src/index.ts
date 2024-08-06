@@ -1,4 +1,4 @@
-import { barrel } from "./barreler/index.js";
+import { barrel } from "./barreler/index";
 
 export default barrel;
-export { barrel } from "./barreler/index.js";
+export { barrel } from "./barreler/index";
