@@ -6,9 +6,9 @@ jest.mock("fs");
 describe("utils", () => {
   describe("isDirectory", () => {
     it("should get directory", async () => {
-      jest.spyOn(fs, "stat").mockImplementation((path, callback) =>
+      jest.spyOn(fs, "stat").mockImplementation((path, callback: any) =>
         callback(null, {
-          isDirectory: () => true
+          isDirectory: () => true,
         } as any)
       );
 
@@ -18,9 +18,9 @@ describe("utils", () => {
     });
 
     it("should get file", async () => {
-      jest.spyOn(fs, "stat").mockImplementation((path, callback) =>
+      jest.spyOn(fs, "stat").mockImplementation((path, callback: any) =>
         callback(null, {
-          isDirectory: () => false
+          isDirectory: () => false,
         } as any)
       );
 
@@ -56,7 +56,7 @@ describe("utils", () => {
         .spyOn(utils, "loadFileToString")
         .mockResolvedValue("");
 
-      await utils.removeExportLinesBeforeUpdating("index-file.ts", "");
+      await utils.removeExportLinesBeforeUpdating("index-file.ts", "", false);
 
       expect(loadSpy).toHaveBeenCalledWith("index-file.ts");
     });
@@ -70,7 +70,7 @@ describe("utils", () => {
             "export { DummyB } from './dummy.b;\n"
         );
 
-      await utils.removeExportLinesBeforeUpdating("index.ts", "/test");
+      await utils.removeExportLinesBeforeUpdating("index.ts", "/test", false);
 
       expect(writeFileSpy).toHaveBeenCalledWith(
         "index.ts",
@@ -92,11 +92,55 @@ describe("utils", () => {
             "export { DummyB } from './dummy.b;\n"
         );
 
-      await utils.removeExportLinesBeforeUpdating("index.ts", "/test");
+      await utils.removeExportLinesBeforeUpdating("index.ts", "/test", false);
 
       expect(writeFileSpy).toHaveBeenCalledWith(
         "index.ts",
         "export { Dummy } from './dummy';\n" +
+          "export { DummyB } from './dummy.b;\n"
+      );
+    });
+
+    it("should remove type-only export and NOT remove non-type export", async () => {
+      jest
+        .spyOn(utils, "loadFileToString")
+        .mockResolvedValue(
+          "export { Dummy } from './dummy';\n" +
+            "export type {\n" +
+            "TestA," +
+            "TestB," +
+            "TestC," +
+            "} from './test';\n" +
+            "export { TestD } from './test';\n" +
+            "export { DummyB } from './dummy.b;\n"
+        );
+
+      await utils.removeExportLinesBeforeUpdating("index.ts", "/test", true);
+
+      expect(writeFileSpy).toHaveBeenCalledWith(
+        "index.ts",
+        "export { Dummy } from './dummy';\n" +
+          "export { TestD } from './test';\n" +
+          "export { DummyB } from './dummy.b;\n"
+      );
+    });
+
+    it("should NOT remove type-only export and remove non-type export", async () => {
+      jest
+        .spyOn(utils, "loadFileToString")
+        .mockResolvedValue(
+          "export { Dummy } from './dummy';\n" +
+            "export type { TestA } from './test';\n" +
+            "export { TestD } from './test';\n" +
+            "export { DummyB } from './dummy.b;\n"
+        );
+
+      await utils.removeExportLinesBeforeUpdating("index.ts", "/test", false);
+
+      expect(writeFileSpy).toHaveBeenCalledWith(
+        "index.ts",
+        "export { Dummy } from './dummy';\n" +
+          "export type { TestA } from './test';\n" +
           "export { DummyB } from './dummy.b;\n"
       );
     });

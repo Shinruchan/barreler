@@ -1,5 +1,5 @@
-import { Exporter } from "../exporter/exporter";
-import { BarrelerOptions } from "../model";
+import { Exporter } from "../exporter/exporter.js";
+import { BarrelerOptions } from "../model.js";
 
 export abstract class Exportable {
   constructor(
@@ -14,6 +14,7 @@ export abstract class Exportable {
 export interface Export {
   name: string;
   isDefault?: boolean;
+  isType?: boolean;
 }
 
 export interface ExportLine {

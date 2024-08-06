@@ -1,11 +1,11 @@
-import { ExportLine, Export } from "../exportables/model";
+import { ExportLine, Export } from "../exportables/model.js";
 import {
   removeExportLinesBeforeUpdating,
   appendFile,
   compareFileExportsFirst,
   compareAlphabetically,
-  compareDefaultFirst
-} from "../util";
+  compareDefaultFirst,
+} from "../util/index.js";
 
 export class Exporter {
   private indexFiles: Map<string, ExportLine[]> = new Map();
@@ -41,15 +41,20 @@ export class Exporter {
     }
   }
 
+  /**
+   * Exports "export * from 'some/index';"
+   * - Cannot be type export
+   */
   private async exportStringLineToFile(line: ExportLine, file: string) {
     const toBeWritten = `export ${line.whatToExport} from '.${line.fromFile}';\n`;
 
-    await removeExportLinesBeforeUpdating(file, line.fromFile);
+    await removeExportLinesBeforeUpdating(file, line.fromFile, false);
     await appendFile(file, toBeWritten);
   }
 
   private async exportExportsLineToFile(line: ExportLine, file: string) {
     let listOfExports = line.whatToExport as Export[];
+    const isTypeExport = Boolean(listOfExports[0].isType);
 
     listOfExports = listOfExports.sort((a, b) =>
       compareAlphabetically(a.name, b.name)
@@ -57,16 +62,17 @@ export class Exporter {
     listOfExports = listOfExports.sort(compareDefaultFirst);
 
     const listOfExportables = listOfExports
-      .map(exp => {
+      .map((exp) => {
         if (!exp.isDefault) return exp.name;
 
         return `default as ${exp.name}`;
       })
       .join(", ");
 
-    const toBeWritten = `export { ${listOfExportables} } from '.${line.fromFile}';\n`;
+    const typePart = isTypeExport ? "type " : "";
+    const toBeWritten = `export ${typePart}{ ${listOfExportables} } from '.${line.fromFile}';\n`;
 
-    await removeExportLinesBeforeUpdating(file, line.fromFile);
+    await removeExportLinesBeforeUpdating(file, line.fromFile, isTypeExport);
     await appendFile(file, toBeWritten);
   }
 }

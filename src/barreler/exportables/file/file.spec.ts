@@ -13,12 +13,12 @@ describe("File", () => {
   beforeEach(() => {
     exporter = {
       addExportsToIndex: jest.fn(),
-      exportToFiles: jest.fn().mockResolvedValue(null)
+      exportToFiles: jest.fn().mockResolvedValue(null),
     } as any;
 
     file = new File("my-file.js", exporter, {
       include: ["include"],
-      exclude: ["exclude"]
+      exclude: ["exclude"],
     } as any);
   });
 
@@ -38,7 +38,7 @@ describe("File", () => {
       await file.init();
 
       expect(utils.isMachedPath).toHaveBeenCalledWith("my-file.js", [
-        "exclude"
+        "exclude",
       ]);
     });
 
@@ -46,7 +46,7 @@ describe("File", () => {
       await file.init();
 
       expect(utils.isMachedPath).toHaveBeenCalledWith("my-file.js", [
-        "include"
+        "include",
       ]);
     });
 
@@ -86,7 +86,7 @@ describe("File", () => {
       expect(exporter.addExportsToIndex).toHaveBeenCalledWith(
         {
           whatToExport: ["a"],
-          fromFile: "fromPath"
+          fromFile: "fromPath",
         },
         "indexPath"
       );
@@ -175,7 +175,7 @@ describe("File", () => {
         .spyOn(utils, "loadFileToString")
         .mockResolvedValue("export class Test {}");
       file["findExportableNameFromLine"] = jest.fn().mockReturnValue({
-        name: "Test"
+        name: "Test",
       });
 
       await file["findExportsInFile"]();
@@ -191,6 +191,14 @@ describe("File", () => {
       );
 
       expect(exp!.name).toEqual("MyInterface");
+    });
+
+    it("should find type", () => {
+      const exp = file["findExportableNameFromLine"](
+        "export type MyType<T> = T;"
+      );
+
+      expect(exp!.name).toEqual("MyType");
     });
 
     it("should find const", () => {
@@ -303,7 +311,8 @@ describe("File", () => {
 
         expect(exp).toEqual({
           name: "MyNonDefaultClass",
-          isDefault: false
+          isDefault: false,
+          isType: false,
         });
       });
 
@@ -314,7 +323,46 @@ describe("File", () => {
 
         expect(exp).toEqual({
           name: "MyDefaultClass",
-          isDefault: true
+          isDefault: true,
+          isType: false,
+        });
+      });
+    });
+
+    describe("isType", () => {
+      it("should find non-type export", () => {
+        const exp = file["findExportableNameFromLine"](
+          "export class MyNonTypeClass {"
+        );
+
+        expect(exp).toEqual({
+          name: "MyNonTypeClass",
+          isDefault: false,
+          isType: false,
+        });
+      });
+
+      it("should find type export for interface", () => {
+        const exp = file["findExportableNameFromLine"](
+          "export interface MyTypeInterface {"
+        );
+
+        expect(exp).toEqual({
+          name: "MyTypeInterface",
+          isDefault: false,
+          isType: true,
+        });
+      });
+
+      it("should find type export for type", () => {
+        const exp = file["findExportableNameFromLine"](
+          "export type MyTypeType ="
+        );
+
+        expect(exp).toEqual({
+          name: "MyTypeType",
+          isDefault: false,
+          isType: true,
         });
       });
     });

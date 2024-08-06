@@ -1,11 +1,11 @@
-import { parseFiles } from "./parser/parser";
-import { Exporter } from "./exporter/exporter";
-import { BarrelerOptions, BarrelerMode } from "./model";
+import { parseFiles } from "./parser/parser.js";
+import { Exporter } from "./exporter/exporter.js";
+import { BarrelerOptions, BarrelerMode } from "./model.js";
 
 export const defaultOptions: BarrelerOptions = {
   mode: BarrelerMode.MultiFileIndex,
   include: ["*.[jt]s(x)?"],
-  exclude: ["*(spec|test).[jt]s(x)?", "*__tests__/*.[jt]s(x)?"]
+  exclude: ["*(spec|test).[jt]s(x)?", "*__tests__/*.[jt]s(x)?"],
 };
 
 export const barrel = async (
@@ -14,7 +14,7 @@ export const barrel = async (
 ): Promise<void> => {
   const opts: BarrelerOptions = {
     ...defaultOptions,
-    ...options
+    ...options,
   };
 
   const exporter = new Exporter();

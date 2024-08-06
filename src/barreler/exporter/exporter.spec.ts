@@ -148,7 +148,8 @@ describe("exporter", () => {
 
       expect(util.removeExportLinesBeforeUpdating).toHaveBeenCalledWith(
         "some/index.ts",
-        "/folder/file.ts"
+        "/folder/file.ts",
+        false,
       );
     });
 
@@ -187,7 +188,24 @@ describe("exporter", () => {
 
       expect(util.removeExportLinesBeforeUpdating).toHaveBeenCalledWith(
         "some/index.ts",
-        "/folder/file.ts"
+        "/folder/file.ts",
+        false
+      );
+    });
+
+    it("should remove existing line with type-only export", async () => {
+      await exporter["exportExportsLineToFile"](
+        {
+          whatToExport: [{ name: "SomeEntity", isType: true }],
+          fromFile: "/folder/file.ts"
+        },
+        "some/index.ts"
+      );
+
+      expect(util.removeExportLinesBeforeUpdating).toHaveBeenCalledWith(
+        "some/index.ts",
+        "/folder/file.ts",
+        true
       );
     });
 
@@ -221,6 +239,23 @@ describe("exporter", () => {
       expect(util.appendFile).toHaveBeenCalledWith(
         "some/index.ts",
         "export { SomeEntity, default as SomeDefEntity } from './folder/file.ts';\n"
+      );
+    });
+
+    it("should write type-only exports to file", async () => {
+      await exporter["exportExportsLineToFile"](
+        {
+          whatToExport: [
+            { name: "SomeEntity", isType: true },
+          ],
+          fromFile: "/folder/file.ts"
+        },
+        "some/index.ts"
+      );
+
+      expect(util.appendFile).toHaveBeenCalledWith(
+        "some/index.ts",
+        "export type { SomeEntity } from './folder/file.ts';\n"
       );
     });
 

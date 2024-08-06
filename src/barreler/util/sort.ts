@@ -1,4 +1,4 @@
-import { ExportLine, Export } from "../exportables/model";
+import { ExportLine, Export } from "../exportables/model.js";
 
 export const compareFileExportsFirst = (exp1: ExportLine, exp2: ExportLine) => {
   if (
