@@ -14,6 +14,7 @@ export abstract class Exportable {
 export interface Export {
   name: string;
   isDefault?: boolean;
+  isType?: boolean;
 }
 
 export interface ExportLine {
