@@ -2,8 +2,8 @@ export {
   compareAlphabetically,
   compareDefaultFirst,
   compareFileExportsFirst
-} from "./sort";
-export { filePathToRegex } from "./to-regex";
+} from "./sort.js";
+export { filePathToRegex } from "./to-regex.js";
 export {
   appendFile,
   isDirectory,
@@ -11,4 +11,4 @@ export {
   loadFileToString,
   removeExportLinesBeforeUpdating,
   writeFile
-} from "./utils";
+} from "./utils.js";

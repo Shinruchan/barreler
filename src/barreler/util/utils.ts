@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { promisify } from "util";
-import { filePathToRegex } from "./to-regex";
+import { filePathToRegex } from "./to-regex.js";
 
 export const appendFile = promisify(fs.appendFile);
 export const writeFile = promisify(fs.writeFile);
@@ -30,7 +30,7 @@ export const removeExportLinesBeforeUpdating = async (
     const lines = fileDataUnformatted.split("\n");
 
     const modifiedLines = lines.filter(
-      line => line.indexOf(searchPattern) === -1
+      (line) => line.indexOf(searchPattern) === -1
     );
 
     await writeFile(indexFilePath, modifiedLines.join("\n"));
