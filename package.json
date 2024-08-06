@@ -1,6 +1,6 @@
 {
   "name": "barreler",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Generator for barrel files (export from index files) for JavaScript and TypeScript.",
   "bin": {
     "barreler": "./lib/cli/index.js"
