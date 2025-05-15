@@ -33,14 +33,14 @@
   },
   "homepage": "https://github.com/Shinruchan/barreler#readme",
   "devDependencies": {
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.14",
     "@types/meow": "^6.0.0",
-    "@types/node": "^22.1.0",
+    "@types/node": "^22.15.18",
     "jest": "^29.7.0",
-    "nodemon": "^3.1.4",
-    "ts-jest": "^29.2.4",
-    "tsx": "^4.16.5",
-    "typescript": "^5.5.4"
+    "nodemon": "^3.1.10",
+    "ts-jest": "^29.3.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@danielberndt/match-all": "^1.0.0",
