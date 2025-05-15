@@ -21,7 +21,8 @@ export class Directory extends Exportable {
     this.exporter.addExportsToIndex(
       {
         whatToExport: "*",
-        fromFile: this.exportFromPath
+        fromFile: this.exportFromPath,
+        fromFileExtension: "",
       },
       this.indexFilePath
     );
@@ -43,14 +44,14 @@ export class Directory extends Exportable {
   private async getFilesInDir(): Promise<string[]> {
     const files = await promisify(readdir)(this.path);
 
-    const fullPathFiles = files.map(file => `${this.path}/${file}`);
+    const fullPathFiles = files.map((file) => `${this.path}/${file}`);
 
     return fullPathFiles;
   }
 
   private async getExtension(): Promise<string> {
     const files = await this.getFilesInDir();
-    const file = files.find(file =>
+    const file = files.find((file) =>
       ["ts", "js", "tsx", "jsx"].includes(
         file.substring(file.lastIndexOf(".") + 1)
       )
@@ -70,7 +71,7 @@ export class Directory extends Exportable {
     const index = this.exporter
       .getIndexFiles()
       .find(
-        index =>
+        (index) =>
           index.substring(0, index.lastIndexOf(".")) === `${this.path}/index`
       );
 

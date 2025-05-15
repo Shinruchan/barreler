@@ -1,4 +1,5 @@
 import { ExportLine, Export } from "../exportables/model";
+import { BarrelerExtension, BarrelerOptions } from "../model";
 import {
   removeExportLinesBeforeUpdating,
   appendFile,
@@ -9,6 +10,8 @@ import {
 
 export class Exporter {
   private indexFiles: Map<string, ExportLine[]> = new Map();
+
+  constructor(private options: BarrelerOptions) {}
 
   addExportsToIndex(exportLine: ExportLine, indexFile: string) {
     const existingExportLines = this.indexFiles.get(indexFile);
@@ -46,7 +49,9 @@ export class Exporter {
    * - Cannot be type export
    */
   private async exportStringLineToFile(line: ExportLine, file: string) {
-    const toBeWritten = `export ${line.whatToExport} from '.${line.fromFile}';\n`;
+    const toBeWritten = `export ${line.whatToExport} from '.${
+      line.fromFile
+    }${this.getExtension(line)}';\n`;
 
     await removeExportLinesBeforeUpdating(file, line.fromFile, false);
     await appendFile(file, toBeWritten);
@@ -70,9 +75,27 @@ export class Exporter {
       .join(", ");
 
     const typePart = isTypeExport ? "type " : "";
-    const toBeWritten = `export ${typePart}{ ${listOfExportables} } from '.${line.fromFile}';\n`;
+    const toBeWritten = `export ${typePart}{ ${listOfExportables} } from '.${
+      line.fromFile
+    }${this.getExtension(line)}';\n`;
 
     await removeExportLinesBeforeUpdating(file, line.fromFile, isTypeExport);
     await appendFile(file, toBeWritten);
+  }
+
+  private getExtension(line: ExportLine): string {
+    switch (this.options.extensions) {
+      case BarrelerExtension.SameAsFile:
+        return line.fromFileExtension;
+
+      case BarrelerExtension.Custom:
+        return this.options.customExtension
+          ? `.${this.options.customExtension}`
+          : "";
+
+      case BarrelerExtension.None:
+      default:
+        return "";
+    }
   }
 }

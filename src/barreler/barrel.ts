@@ -1,9 +1,10 @@
 import { parseFiles } from "./parser/parser";
 import { Exporter } from "./exporter/exporter";
-import { BarrelerOptions, BarrelerMode } from "./model";
+import { BarrelerOptions, BarrelerMode, BarrelerExtension } from "./model";
 
 export const defaultOptions: BarrelerOptions = {
   mode: BarrelerMode.MultiFileIndex,
+  extensions: BarrelerExtension.None,
   include: ["*.[jt]s(x)?"],
   exclude: [
     "*(spec|test).[jt]s(x)?",
@@ -21,7 +22,7 @@ export const barrel = async (
     ...options,
   };
 
-  const exporter = new Exporter();
+  const exporter = new Exporter(opts);
   await parseFiles(files, exporter, opts);
   await exporter.exportToFiles();
 };

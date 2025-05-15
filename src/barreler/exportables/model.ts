@@ -20,4 +20,5 @@ export interface Export {
 export interface ExportLine {
   whatToExport: string | Export[];
   fromFile: string;
+  fromFileExtension: string;
 }

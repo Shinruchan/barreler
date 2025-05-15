@@ -34,9 +34,14 @@ barreler ./file.js ./file.js ./folder
 Options:
 
 ```sh
---mode, -m      Select mode values = ['all-level-index', 'multifile-index']
---include, -i   Sets pattern for file inclusion. Comma separated list. default: *.[jt]s(x)?
---exclude, -e   Sets pattern for file exclusion. Comma separated list. default: *(spec|test).[jt]s(x)?,*__tests__/*.[jt]s(x)?,*__snapshots__/*
+--mode, -m          Select mode values = ['all-level-index', 'multifile-index'], Default: 'multifile-index'
+--extensions, -ext  Selects mode how extensions will be rendered, values = ['none', 'same-as-file', 'custom'], Default: 'none'
+                      - none, generates: export {} from './file'
+                      - same-as-file, generates: export {} from './file.ts'
+                      - custom, assuming --custom-ext=mjs generates: export {} from './file.mjs'
+--custom-ext        Sets extension for custom extension mode
+--include, -i       Sets pattern for file inclusion. Comma separated list. default: *.[jt]s(x)?
+--exclude, -e       Sets pattern for file exclusion. Comma separated list. default: *(spec|test).[jt]s(x)?,*__tests__/*.[jt]s(x)?,*__snapshots__/*
 ```
 
 #### Use as npm dependency
@@ -54,6 +59,8 @@ Options:
 ```ts
 BarrelerOptions {
   mode: BarrelerMode; // default: BarrelerMode.MultiFileIndex
+  extensions: BarrelerExtension; // default BarrelerExtension.None
+  customExtension?: string; // only applicable when BarrelerExtension.Custom, set to something like 'js' or 'mjs', etc.
   include: string[];  // default: ["*.[jt]s(x)?"],
   exclude: string[];  // default: ["*(spec|test).[jt]s(x)?", "*__tests__/*.[jt]s(x)?", "*__snapshots__/*"]
 }

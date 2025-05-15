@@ -12,6 +12,7 @@ export class File extends Exportable {
   private rootPath: string = "";
   private exportFromPath: string = "";
   private indexFilePath: string = "";
+  private fileExtension: string = "";
 
   private exports: Export[] = [];
   private typeExports: Export[] = [];
@@ -32,6 +33,7 @@ export class File extends Exportable {
         {
           whatToExport: this.exports,
           fromFile: this.exportFromPath,
+          fromFileExtension: this.fileExtension,
         },
         this.indexFilePath
       );
@@ -42,6 +44,7 @@ export class File extends Exportable {
         {
           whatToExport: this.typeExports,
           fromFile: this.exportFromPath,
+          fromFileExtension: this.fileExtension,
         },
         this.indexFilePath
       );
@@ -104,8 +107,10 @@ export class File extends Exportable {
       this.path.lastIndexOf(".")
     );
 
-    const extension = this.path.indexOf(".js") === -1 ? "ts" : "js";
-    this.indexFilePath = `${this.rootPath}/index.${extension}`;
+    this.fileExtension = this.path.substring(this.path.lastIndexOf("."));
+
+    const extension = this.fileExtension.startsWith(".js") ? ".js" : ".ts";
+    this.indexFilePath = `${this.rootPath}/index${extension}`;
   }
 
   private async getRootPath(file: string): Promise<string> {

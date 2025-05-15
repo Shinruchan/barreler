@@ -87,6 +87,7 @@ describe("File", () => {
         {
           whatToExport: ["a"],
           fromFile: "fromPath",
+          fromFileExtension: "",
         },
         "indexPath"
       );
@@ -403,6 +404,26 @@ describe("File", () => {
 
       expect(file["indexFilePath"]).toEqual("/project/folder/index.js");
     });
+
+    it.each`
+      fileExt  | expectedExt | expectedIndexExt
+      ${"ts"}  | ${".ts"}    | ${"ts"}
+      ${"tsx"} | ${".tsx"}   | ${"ts"}
+      ${"js"}  | ${".js"}    | ${"js"}
+      ${"jsx"} | ${".jsx"}   | ${"js"}
+    `(
+      "should set extension %s",
+      async ({ fileExt, expectedExt, expectedIndexExt }) => {
+        file["path"] = `/project/folder/file.${fileExt}`;
+
+        await file["preparePaths"]();
+
+        expect(file["indexFilePath"]).toEqual(
+          `/project/folder/index.${expectedIndexExt}`
+        );
+        expect(file["fileExtension"]).toEqual(expectedExt);
+      }
+    );
   });
 
   describe("get root path", () => {
