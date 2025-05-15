@@ -1,5 +1,6 @@
 import { Exporter } from "./exporter";
 import * as util from "../util";
+import { BarrelerExtension } from "../model";
 
 jest.mock("../util");
 
@@ -7,14 +8,15 @@ describe("exporter", () => {
   let exporter: Exporter;
 
   beforeEach(() => {
-    exporter = new Exporter();
+    exporter = new Exporter({} as any);
   });
 
   describe("addExportsToIndex", () => {
     it("should add exports to new index file", () => {
       const exportLine = {
         whatToExport: "*",
-        fromFile: "file.ts"
+        fromFile: "file",
+        fromFileExtension: ".ts",
       };
 
       exporter.addExportsToIndex(exportLine, "/test/index.ts");
@@ -32,15 +34,17 @@ describe("exporter", () => {
           [
             {
               whatToExport: "*",
-              fromFile: "existing-file.ts"
-            }
-          ]
-        ]
+              fromFile: "existing-file",
+              fromFileExtension: ".ts",
+            },
+          ],
+        ],
       ]);
 
       const exportLine = {
         whatToExport: "*",
-        fromFile: "file.ts"
+        fromFile: "file.ts",
+        fromFileExtension: ".ts",
       };
 
       exporter.addExportsToIndex(exportLine, "/test/index.ts");
@@ -49,9 +53,10 @@ describe("exporter", () => {
       map.set("/test/index.ts", [
         {
           whatToExport: "*",
-          fromFile: "existing-file.ts"
+          fromFile: "existing-file",
+          fromFileExtension: ".ts",
         },
-        exportLine
+        exportLine,
       ]);
 
       expect(exporter["indexFiles"]).toEqual(map);
@@ -66,10 +71,11 @@ describe("exporter", () => {
           [
             {
               whatToExport: "*",
-              fromFile: "existing-file.ts"
-            }
-          ]
-        ]
+              fromFile: "existing-file",
+              fromFileExtension: ".ts",
+            },
+          ],
+        ],
       ]);
 
       expect(exporter.getIndexFiles()).toEqual(["/test/index.ts"]);
@@ -85,13 +91,22 @@ describe("exporter", () => {
       exporter["exportStringLineToFile"] = jest.fn();
 
       exporter["indexFiles"] = new Map([
-        ["index.ts", [{ whatToExport: "*", fromFile: "/test.ts" }]]
+        [
+          "index.ts",
+          [
+            {
+              whatToExport: "*",
+              fromFile: "/test",
+              fromFileExtension: ".ts",
+            },
+          ],
+        ],
       ]);
 
       await exporter.exportToFiles();
 
       expect(exporter["exportStringLineToFile"]).toHaveBeenCalledWith(
-        { fromFile: "/test.ts", whatToExport: "*" },
+        { fromFile: "/test", whatToExport: "*", fromFileExtension: ".ts" },
         "index.ts"
       );
     });
@@ -102,14 +117,24 @@ describe("exporter", () => {
       exporter["indexFiles"] = new Map([
         [
           "index.ts",
-          [{ whatToExport: [{ name: "SomeEntity" }], fromFile: "/file.ts" }]
-        ]
+          [
+            {
+              whatToExport: [{ name: "SomeEntity" }],
+              fromFile: "/file",
+              fromFileExtension: ".ts",
+            },
+          ],
+        ],
       ]);
 
       await exporter.exportToFiles();
 
       expect(exporter["exportExportsLineToFile"]).toHaveBeenCalledWith(
-        { fromFile: "/file.ts", whatToExport: [{ name: "SomeEntity" }] },
+        {
+          fromFile: "/file",
+          whatToExport: [{ name: "SomeEntity" }],
+          fromFileExtension: ".ts",
+        },
         "index.ts"
       );
     });
@@ -119,10 +144,18 @@ describe("exporter", () => {
         [
           "index.ts",
           [
-            { whatToExport: "*", fromFile: "/test.ts" },
-            { whatToExport: "*", fromFile: "/test2.ts" }
-          ]
-        ]
+            {
+              whatToExport: "*",
+              fromFile: "/test",
+              fromFileExtension: ".ts",
+            },
+            {
+              whatToExport: "*",
+              fromFile: "/test2",
+              fromFileExtension: ".ts",
+            },
+          ],
+        ],
       ]);
 
       await exporter.exportToFiles();
@@ -141,15 +174,16 @@ describe("exporter", () => {
       await exporter["exportStringLineToFile"](
         {
           whatToExport: "*",
-          fromFile: "/folder/file.ts"
+          fromFile: "/folder/file",
+          fromFileExtension: ".ts",
         },
         "some/index.ts"
       );
 
       expect(util.removeExportLinesBeforeUpdating).toHaveBeenCalledWith(
         "some/index.ts",
-        "/folder/file.ts",
-        false,
+        "/folder/file",
+        false
       );
     });
 
@@ -157,14 +191,15 @@ describe("exporter", () => {
       await exporter["exportStringLineToFile"](
         {
           whatToExport: "*",
-          fromFile: "/folder/file.ts"
+          fromFile: "/folder/file",
+          fromFileExtension: ".ts",
         },
         "some/index.ts"
       );
 
       expect(util.appendFile).toHaveBeenCalledWith(
         "some/index.ts",
-        "export * from './folder/file.ts';\n"
+        "export * from './folder/file';\n"
       );
     });
   });
@@ -181,7 +216,8 @@ describe("exporter", () => {
       await exporter["exportExportsLineToFile"](
         {
           whatToExport: [{ name: "SomeEntity" }],
-          fromFile: "/folder/file.ts"
+          fromFile: "/folder/file.ts",
+          fromFileExtension: ".ts",
         },
         "some/index.ts"
       );
@@ -197,7 +233,8 @@ describe("exporter", () => {
       await exporter["exportExportsLineToFile"](
         {
           whatToExport: [{ name: "SomeEntity", isType: true }],
-          fromFile: "/folder/file.ts"
+          fromFile: "/folder/file.ts",
+          fromFileExtension: ".ts",
         },
         "some/index.ts"
       );
@@ -213,7 +250,8 @@ describe("exporter", () => {
       await exporter["exportExportsLineToFile"](
         {
           whatToExport: [{ name: "SomeEntity" }],
-          fromFile: "/folder/file.ts"
+          fromFile: "/folder/file.ts",
+          fromFileExtension: ".ts",
         },
         "some/index.ts"
       );
@@ -229,9 +267,10 @@ describe("exporter", () => {
         {
           whatToExport: [
             { name: "SomeEntity" },
-            { name: "SomeDefEntity", isDefault: true }
+            { name: "SomeDefEntity", isDefault: true },
           ],
-          fromFile: "/folder/file.ts"
+          fromFile: "/folder/file.ts",
+          fromFileExtension: ".ts",
         },
         "some/index.ts"
       );
@@ -245,10 +284,9 @@ describe("exporter", () => {
     it("should write type-only exports to file", async () => {
       await exporter["exportExportsLineToFile"](
         {
-          whatToExport: [
-            { name: "SomeEntity", isType: true },
-          ],
-          fromFile: "/folder/file.ts"
+          whatToExport: [{ name: "SomeEntity", isType: true }],
+          fromFile: "/folder/file.ts",
+          fromFileExtension: ".ts",
         },
         "some/index.ts"
       );
@@ -263,7 +301,8 @@ describe("exporter", () => {
       await exporter["exportExportsLineToFile"](
         {
           whatToExport: [{ name: "SomeEntity1" }, { name: "SomeEntity2" }],
-          fromFile: "/folder/file.ts"
+          fromFile: "/folder/file.ts",
+          fromFileExtension: ".ts",
         },
         "some/index.ts"
       );
@@ -275,12 +314,64 @@ describe("exporter", () => {
       await exporter["exportExportsLineToFile"](
         {
           whatToExport: [{ name: "SomeEntity1" }, { name: "SomeEntity2" }],
-          fromFile: "/folder/file.ts"
+          fromFile: "/folder/file.ts",
+          fromFileExtension: ".ts",
         },
         "some/index.ts"
       );
 
       expect(util.compareDefaultFirst).toHaveBeenCalled();
+    });
+  });
+
+  describe("getExtension", () => {
+    it("should return none for None", () => {
+      exporter["options"]["extensions"] = BarrelerExtension.None;
+
+      const ext = exporter["getExtension"]({
+        whatToExport: "*",
+        fromFile: "./file",
+        fromFileExtension: ".ts",
+      });
+
+      expect(ext).toBe("");
+    });
+
+    it("should return .ts for SameAsFile", () => {
+      exporter["options"]["extensions"] = BarrelerExtension.SameAsFile;
+
+      const ext = exporter["getExtension"]({
+        whatToExport: "*",
+        fromFile: "./file",
+        fromFileExtension: ".ts",
+      });
+
+      expect(ext).toBe(".ts");
+    });
+
+    it("should return .js for SameAsFile", () => {
+      exporter["options"]["extensions"] = BarrelerExtension.SameAsFile;
+
+      const ext = exporter["getExtension"]({
+        whatToExport: "*",
+        fromFile: "./file",
+        fromFileExtension: ".js",
+      });
+
+      expect(ext).toBe(".js");
+    });
+
+    it("should return .mjs for Custom", () => {
+      exporter["options"]["extensions"] = BarrelerExtension.Custom;
+      exporter["options"]["customExtension"] = "mjs";
+
+      const ext = exporter["getExtension"]({
+        whatToExport: "*",
+        fromFile: "./file",
+        fromFileExtension: ".js",
+      });
+
+      expect(ext).toBe(".mjs");
     });
   });
 });

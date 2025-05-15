@@ -17,7 +17,7 @@ describe("Directory", () => {
     exporter = {
       addExportsToIndex: jest.fn(),
       exportToFiles: jest.fn().mockResolvedValue(null),
-      getIndexFiles: jest.fn()
+      getIndexFiles: jest.fn(),
     } as any;
 
     directory = new Directory("", exporter, {} as any);
@@ -79,7 +79,8 @@ describe("Directory", () => {
       expect(exporter.addExportsToIndex).toHaveBeenCalledWith(
         {
           whatToExport: "*",
-          fromFile: "fromPath"
+          fromFile: "fromPath",
+          fromFileExtension: "",
         },
         "indexPath"
       );
