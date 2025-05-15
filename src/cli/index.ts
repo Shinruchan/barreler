@@ -11,7 +11,7 @@ const cli = meow(
     Options
       --mode, -m      Select mode values = ['all-level-index', 'multifile-index'], Default: 'multifile-index'
       --include, -i   Sets pattern for file inclusion. Comma separated list. default: *.[jt]s(x)?
-      --exclude, -e   Sets pattern for file exclusion. Comma separated list. default: *(spec|test).[jt]s(x)?,*__tests__/*.[jt]s(x)?
+      --exclude, -e   Sets pattern for file exclusion. Comma separated list. default: *(spec|test).[jt]s(x)?,*__tests__/*.[jt]s(x)?,*__snapshots__/*
  
     Examples
       $ barreler ./file.ts ./folder

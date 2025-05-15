@@ -5,7 +5,11 @@ import { BarrelerOptions, BarrelerMode } from "./model";
 export const defaultOptions: BarrelerOptions = {
   mode: BarrelerMode.MultiFileIndex,
   include: ["*.[jt]s(x)?"],
-  exclude: ["*(spec|test).[jt]s(x)?", "*__tests__/*.[jt]s(x)?"],
+  exclude: [
+    "*(spec|test).[jt]s(x)?",
+    "*__tests__/*.[jt]s(x)?",
+    "*__snapshots__/*",
+  ],
 };
 
 export const barrel = async (

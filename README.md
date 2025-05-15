@@ -36,7 +36,7 @@ Options:
 ```sh
 --mode, -m      Select mode values = ['all-level-index', 'multifile-index']
 --include, -i   Sets pattern for file inclusion. Comma separated list. default: *.[jt]s(x)?
---exclude, -e   Sets pattern for file exclusion. Comma separated list. default: *(spec|test).[jt]s(x)?,*__tests__/*.[jt]s(x)?
+--exclude, -e   Sets pattern for file exclusion. Comma separated list. default: *(spec|test).[jt]s(x)?,*__tests__/*.[jt]s(x)?,*__snapshots__/*
 ```
 
 #### Use as npm dependency
@@ -55,7 +55,7 @@ Options:
 BarrelerOptions {
   mode: BarrelerMode; // default: BarrelerMode.MultiFileIndex
   include: string[];  // default: ["*.[jt]s(x)?"],
-  exclude: string[];  // default: ["*(spec|test).[jt]s(x)?", "*__tests__/*.[jt]s(x)?"]
+  exclude: string[];  // default: ["*(spec|test).[jt]s(x)?", "*__tests__/*.[jt]s(x)?", "*__snapshots__/*"]
 }
 ```
 
