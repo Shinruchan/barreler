@@ -52,7 +52,7 @@ export class Directory extends Exportable {
   private async getExtension(): Promise<string> {
     const files = await this.getFilesInDir();
     const file = files.find((file) =>
-      ["ts", "js", "tsx", "jsx"].includes(
+      ["ts", "js", "tsx", "jsx", "cjs", "mjs", "cts", "mts"].includes(
         file.substring(file.lastIndexOf(".") + 1)
       )
     );
@@ -64,7 +64,11 @@ export class Directory extends Exportable {
       return index.substring(index.lastIndexOf(".") + 1);
     }
 
-    return file.substring(file.lastIndexOf(".") + 1);
+    const ext = file.substring(file.lastIndexOf(".") + 1);
+
+    if (ext === "tsx") return "ts";
+    if (ext === "jsx") return "js";
+    return ext;
   }
 
   private async hasIndex(): Promise<boolean> {

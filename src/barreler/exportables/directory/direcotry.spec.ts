@@ -136,6 +136,66 @@ describe("Directory", () => {
       expect(ext).toBe("ts");
     });
 
+    it("should return cjs extension", async () => {
+      directory["getFilesInDir"] = jest
+        .fn()
+        .mockResolvedValue(["style.css", "file.cjs"]);
+
+      const ext = await directory["getExtension"]();
+
+      expect(ext).toBe("cjs");
+    });
+
+    it("should return mjs extension", async () => {
+      directory["getFilesInDir"] = jest
+        .fn()
+        .mockResolvedValue(["style.css", "file.mjs"]);
+
+      const ext = await directory["getExtension"]();
+
+      expect(ext).toBe("mjs");
+    });
+
+    it("should return cts extension", async () => {
+      directory["getFilesInDir"] = jest
+        .fn()
+        .mockResolvedValue(["style.css", "file.cts"]);
+
+      const ext = await directory["getExtension"]();
+
+      expect(ext).toBe("cts");
+    });
+
+    it("should return mts extension", async () => {
+      directory["getFilesInDir"] = jest
+        .fn()
+        .mockResolvedValue(["style.css", "file.mts"]);
+
+      const ext = await directory["getExtension"]();
+
+      expect(ext).toBe("mts");
+    });
+
+    it("should return ts instead of tsx extension", async () => {
+      directory["getFilesInDir"] = jest
+        .fn()
+        .mockResolvedValue(["style.css", "file.tsx"]);
+
+      const ext = await directory["getExtension"]();
+
+      expect(ext).toBe("ts");
+    });
+
+    it("should return js instead of jsx extension", async () => {
+      directory["getFilesInDir"] = jest
+        .fn()
+        .mockResolvedValue(["style.css", "file.jsx"]);
+
+      const ext = await directory["getExtension"]();
+
+      expect(ext).toBe("js");
+    });
+
     it("should return ts extension if not yet created files exist", async () => {
       directory["getFilesInDir"] = jest.fn().mockResolvedValue([]);
       jest.spyOn(exporter, "getIndexFiles").mockReturnValue(["/index.ts"]);
