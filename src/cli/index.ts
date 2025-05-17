@@ -13,8 +13,8 @@ const cli = meow(
       --extensions, -ext  Selects mode how extensions will be rendered, values = ['none', 'same-as-file', 'custom'], Default: 'none'
                             - none, generates: export {} from './file'
                             - same-as-file, generates: export {} from './file.ts'
-                            - custom, assuming --custom-ext=mjs generates: export {} from './file.mjs'
-      --custom-ext        Sets extension for custom extension mode
+                            - custom, assuming --customExt=mjs generates: export {} from './file.mjs'
+      --customExt, -ce   Sets extension for custom extension mode
       --include, -i       Sets pattern for file inclusion. Comma separated list. default: *.[jt]s(x)?
       --exclude, -e       Sets pattern for file exclusion. Comma separated list. default: *(spec|test).[jt]s(x)?,*__tests__/*.[jt]s(x)?,*__snapshots__/*
  
@@ -31,8 +31,9 @@ const cli = meow(
         type: "string",
         shortFlag: "ext",
       },
-      "custom-ext": {
+      customExt: {
         type: "string",
+        shortFlat: "ce",
       },
       include: {
         type: "string",
@@ -58,7 +59,7 @@ const run = async (files: string[], flags: any) => {
   if (flags.include) options.include = flags.include.split(",");
   if (flags.exclude) options.exclude = flags.exclude.split(",");
   if (flags.extensions) options.extensions = flags.extensions;
-  if (flags["custom-ext"]) options.customExtension = flags["custom-ext"];
+  if (flags.customExt) options.customExtension = flags.customExt;
 
   await barrel(files, options);
 
